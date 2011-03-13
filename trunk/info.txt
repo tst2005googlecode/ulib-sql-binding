@@ -1,0 +1,11 @@
+"AddonInfo"
+{
+	"name"				"ULib SQL Bindings"
+	"version"			"0.01"
+	"up_date"			"00/00/00"
+	"author_name"			"EraYaN"
+	"author_email"			"N/A"
+	"author_url"			"http://blackbox.erayan.eu"
+	"info"				"SQL Bindings for ULX/ULib"
+	"override"			"1"
+}
