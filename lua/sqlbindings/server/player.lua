@@ -13,6 +13,6 @@ hook.Add("ULibPostTranslatedCommand", "EraYaNSlapHook", slapHook) -- or is there
 
 -- player join (add to mysql database)
 function playerJoinDB(ply)
-	-- check if player in db otherwise add him/her
+	Msg( 'player Joined' )
 end
 hook.Add("UCLAuthed", "HookName", playerJoinDB) -- or is there a ulib/ulx alternative
