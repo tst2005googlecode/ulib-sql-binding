@@ -6,7 +6,8 @@ function commandHook(ply, commandName, translated_args)
 	--[[
 	translated args
 		1=slapper
-		2=user args
+		2=user targets
+		3=dmg
 	]]--
 	for key, value in pairs(translated_args) do
 		if type(value) == 'table' then
@@ -24,7 +25,7 @@ function commandHook(ply, commandName, translated_args)
 	--[[
 	translated args
 		1=kicker
-		2=user being kicked	
+		2=user being kicked
 	]]--
 	for key, value in pairs(translated_args) do
 		if type(value) == 'table' then
