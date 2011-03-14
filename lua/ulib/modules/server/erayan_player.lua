@@ -5,8 +5,9 @@ end
 
 -- ban hook function
 function slapHook(ply, commandName, translated_args)
-if commandName == 'slap' then
-print( 'Slapped someone, printed using ULibPostTranslatedCommand hook' )
+	if commandName == 'slap' then
+	print( 'Slapped someone, printed using ULibPostTranslatedCommand hook' )
+	end
 end
 hook.Add("ULibPostTranslatedCommand", "EraYaNSlapHook", slapHook) -- or is there a ulib/ulx alternative
 
@@ -16,4 +17,3 @@ function playerJoinDB(ply)
 	print( 'player Joined' )
 end
 hook.Add("UCLAuthed", "HookName", playerJoinDB) -- or is there a ulib/ulx alternative
-end
