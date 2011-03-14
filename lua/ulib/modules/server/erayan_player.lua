@@ -5,7 +5,7 @@ end
 
 -- ban hook function
 function slapHook(ply, commandName, translated_args)
-	if commandName == 'slap' then
+	if commandName == 'ulx slap' then
 	print( 'Slapped someone, printed using ULibPostTranslatedCommand hook' )
 	end
 end
