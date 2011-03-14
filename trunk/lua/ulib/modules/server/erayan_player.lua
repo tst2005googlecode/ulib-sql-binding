@@ -16,3 +16,4 @@ function playerJoinDB(ply)
 	print( 'player Joined' )
 end
 hook.Add("UCLAuthed", "HookName", playerJoinDB) -- or is there a ulib/ulx alternative
+end
