@@ -1,108 +1,111 @@
 -- database things in here
 require("mysqloo")
-local 
---[[ Config ]]--
-local config = {
-	hostname = "localhost"
-	username = "root"
-	password = ""
-	database = "ulib-ulx"
-	website  = "blackbox.erayan.eu"
-	portnumb = 3306
-	serverid = -1
-	server = 'TTT'
-	dogroups = false
-};
+--[[ erayan_config ]]--
+local erayan_config = {
+	hostname = "localhost";
+	username = "root";
+	password = "de341h1aa9n";
+	database = "ulib-ulx";
+	website  = "blackbox.erayan.eu";
+	portnumb = 3306;
+	server = "TTT";
+}
 
-local database;
+local database
 
 -- The mysqloo ones are descriptive, but a mouthful.
-STATUS_READY	= mysqloo.DATABASE_CONNECTED;
-STATUS_WORKING	= mysqloo.DATABASE_CONNECTING;
-STATUS_OFFLINE	= mysqloo.DATABASE_NOT_CONNECTED;
-STATUS_ERROR	= mysqloo.DATABASE_INTERNAL_ERROR;
+STATUS_READY	= mysqloo.DATABASE_CONNECTED
+STATUS_WORKING	= mysqloo.DATABASE_CONNECTING
+STATUS_OFFLINE	= mysqloo.DATABASE_NOT_CONNECTED
+STATUS_ERROR	= mysqloo.DATABASE_INTERNAL_ERROR
 
 
 local queries = {
 	-- BanChkr
-	['insert_log'] = "INSERT INTO `ulxlog` (`ulxLogTimeStamp`, `ulxLogContent`) VALUES (NOW(), %s);"
-};
+	['insert_log'] = "INSERT INTO `ulxlog` (`ulxLogTimeStamp`, `ulxLogContent`, `ulxLogServer`) VALUES (NOW(), %s, %s)"
+}
 
 local function blankCallback() end
 local notifyerror, notifymessage
-local doAddLogItem, addLogOnSuccess, addLogOnFailure
-local doConnect, databaseOnFailure
+local addLogOnSuccess, addLogOnFailure
+local doConnect, databaseOnFailure, databaseOnConnected
 -- functions
 local function notifyerror(...)
-	ErrorNoHalt("[", os.date(), "][SourceBans.lua] ", ...);
-	print();
+	ErrorNoHalt("[", os.date(), "][erayan_database.lua] ", ...)
+	print()
 end
 local function notifymessage(...)
-	local words = table.concat({"[",os.date(),"][SourceBans.lua] ",...},"").."\n";
-	ServerLog(words);
-	Msg(words);
+	local words = table.concat({"[",os.date(),"][erayan_database.lua] ",...},"").."\n"
+	ServerLog(words)
+	Msg(words)
 end
 
 function doConnect()	
-	database = mysqloo.connect(config.hostname, config.username, config.password, config.database, config.portnumb)
+	database = mysqloo.connect(erayan_config.hostname, erayan_config.username, erayan_config.password, erayan_config.database, erayan_config.portnumb)
 	database.onConnectionFailed = databaseOnFailure
+	database.onConnected = databaseOnConnected
 	database.pending = {}
 	database:connect()
 end
 function doAddLogItem(str)
-	if database.status then
+	if not database.state == 0 then
 		notifyerror( 'SQL Connection not open.' )
 		return false
 	else
-		local queryText = queries['insert_log']:format(str)
+		local queryText = queries['insert_log']:format(str,erayan_config.server)
 	local query = database:query(queryText)
 	if (query) then
 		query.onFailure = addLogOnFailure
 		query:start()
+		--print('-----------------------Added Log Item-----------------------')
 	else
 		table.insert(database.pending, {queryText, steamID, name, ply})
-		CheckStatus();
+		CheckStatus()
 	end
 
 	end
 end
 
-function addLogOnFailure(err)
-	notifyerror( 'SQL Connection fail' )
+function addLogOnFailure(self, err)
+	notifyerror( 'SQL LogAdd fail ',err )
 end
 
-function databaseOnFailure(err)
-	notifyerror( 'SQL Connection fail' )
+function databaseOnFailure(self, err)
+	notifyerror( 'SQL Connect fail ',err  )
+end
+function databaseOnConnected(self)
+	print('-----------------------Connected to DB-----------------------')
 end
 
 -- Hooks
 do
 local function ShutDown()
 		if (database) then
-			database:abortAllQueries();
+			database:abortAllQueries()
 		end
 	end
 
-hook.Add("ShutDown", "EraYaNDBShutdown", ShutDown);
+hook.Add("ShutDown", "EraYaNDBShutdown", ShutDown)
 end
 
 -- Checks the status of the database and recovers if there are errors
 -- WARNING: This function is blocking. It is auto-called every 5 minutes.
 function CheckStatus()
-	if (not database or database.automaticretry) then return; end
-	local status = database:status();
+	if (not database or database.automaticretry) then return end
+	local status = database:status()
 	if (status == STATUS_WORKING or status == STATUS_READY) then
-		return;
+		return
 	elseif (status == STATUS_ERROR) then
-		notifyerror("The database object has suffered an inernal error and will be recreated.");
-		local pending = database.pending;
-		doConnect();
-		database.pending = pending;
+		notifyerror("The database object has suffered an inernal error and will be recreated.")
+		local pending = database.pending
+		doConnect()
+		database.pending = pending
 	else
 		notifyerror("The server has lost connection to the database. Retrying...")
-		database:connect();
+		database:connect()
 	end
 end
-timer.Create("EraYaN Statur Checker", 300, 0, CheckStatus);
+timer.Create("EraYaN-Status-Checker", 300, 0, CheckStatus)
 
+doConnect()
 
