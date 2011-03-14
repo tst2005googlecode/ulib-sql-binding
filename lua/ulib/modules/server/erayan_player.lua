@@ -11,7 +11,7 @@ function commandHook(ply, commandName, translated_args)
 	for key, value in pairs(translated_args) do
 		if type(value) == 'table' then
 			for key2, value2 in pairs(translated_args) do
-				print( '\t\tSub-Table Slap' ,key, value)
+				print( '\t\tSub-Table Slap' ,key2, value2)
 			end		
 		else
 			print( 'Table Slap' ,key, value)
