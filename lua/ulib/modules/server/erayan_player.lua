@@ -10,7 +10,7 @@ function commandHook(ply, commandName, translated_args)
 	]]--
 	for key, value in pairs(translated_args) do
 		if type(value) == 'table' then
-			for key2, value2 in pairs(translated_args) do
+			for key2, value2 in pairs(value) do
 				print( '\t\tSub-Table Slap' ,key2, value2)
 			end		
 		else
@@ -28,7 +28,7 @@ function commandHook(ply, commandName, translated_args)
 	]]--
 	for key, value in pairs(translated_args) do
 		if type(value) == 'table' then
-			for key2, value2 in pairs(translated_args) do
+			for key2, value2 in pairs(value) do
 				print( '\t\tSub-Table Kick' ,key2, value2)
 			end		
 		else
