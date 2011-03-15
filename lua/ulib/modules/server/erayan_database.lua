@@ -22,18 +22,25 @@ STATUS_ERROR	= mysqloo.DATABASE_INTERNAL_ERROR
 
 local queries = {
 	-- Log
-	['insert_log'] = "INSERT INTO `ulxlog` (`ulxLogTimeStamp`, `ulxLogContent`, `ulxLogServer`) VALUES (NOW(), '%s', '%s')"
+	['insert_log'] = "INSERT INTO `ulxlog` (`ulxLogTimeStamp`, `ulxLogContent`, `ulxLogServer`) VALUES (NOW(), '%s', '%s')";
+	-- Users
+	['insert_user'] = "INSERT INTO `ulib-ulx`.`ulibuser` "..
+	"(`ulibUserSteamID`, `ulibUserName`, `ulibUserGroupID`, `ulibUserLastVisited`, `ulibUserFirstVisited`, `ulibUserTimesVisited`, `ulibUserLastUsedIP`, `ulibUserFirstUsedIP`, `ulibUserServers`)"..
+	" VALUES ('%s', '%s', 0, NOW(), NOW(), 1, '%s', '%s', 'TTT');";
+	['check_user'] = "SELECT COUNT(*) AS Hits FROM `ulib-ulx`.`ulibuser` WHERE ulibUserSteamID = '%s' AND ulibUserServers LIKE \'%s'\;"
 }
 
 local function blankCallback() end
 local notifyerror, notifymessage
 local addLogOnSuccess, addLogOnFailure
 local doConnect, databaseOnFailure, databaseOnConnected
-local pendingOnFailure, pendingOnSucces
+local pendingOnFailure, pendingOnSuccess
+local getIP
+local doAddUser, addUserOnFailure, addUserOnSuccess
 -- functions
 local function notifyerror(...)
 	ErrorNoHalt("[", os.date(), "][erayan_database.lua] ", ...)
-	-- print()
+	print()
 end
 local function notifymessage(...)
 	local words = table.concat({"[",os.date(),"][erayan_database.lua] ",...},"").."\n"
@@ -48,6 +55,7 @@ function doConnect()
 	database.pending = {}
 	database:connect()
 end
+
 function doAddLogItem(str)
 	if not database.state == 0 then
 		notifyerror( 'SQL Connection not open.' )
@@ -58,13 +66,13 @@ function doAddLogItem(str)
 	local query = database:query(queryText)
 	if (query) then
 		query.onFailure = addLogOnFailure
-		query.onSucces = addLogOnSucces
+		query.onSuccess = addLogOnSuccess
 		query:start()
 		---- print('-----------------------Added Log Item-----------------------')
 	else
 		table.insert(database.pending, {queryText, str})
 		CheckStatus()
-		-- print('-----------------------Query Pending-----------------------')
+		-- print('-----------------------Log Query Pending-----------------------')
 	end
 
 	end
@@ -74,15 +82,91 @@ function addLogOnFailure(self, err)
 	notifyerror( 'SQL LogAdd fail ',err )
 end
 
-function addLogOnSucces()
+function addLogOnSuccess()
 	-- print( '-----------------------Added Log Item----------------------- ')
+end
+
+function doAddUser(ply)
+	if not database.state == 0 then
+		notifyerror( 'SQL Connection not open.' )
+		return false
+	else
+		local queryText = queries['insert_user']:format(ply:SteamID(),ply:GetName(),getIP(ply),getIP(ply),erayan_config.server)
+		-- print('Query',queryText)
+	local query = database:query(queryText)
+	if (query) then
+		query.onFailure = addUserOnFailure
+		query.onSuccess = addUserOnSuccess
+		query:start()
+		---- print('-----------------------Added User-----------------------')
+	else
+		table.insert(database.pending, {queryText, str})
+		CheckStatus()
+		-- print('-----------------------User Query Pending-----------------------')
+	end
+
+	end
+end
+
+function addUserOnFailure(self, err)
+	notifyerror( 'SQL Add User Fail ',err )
+end
+
+function addUserOnSuccess()
+	print( '-----------------------Added User----------------------- ')
+end
+
+function doCheckUser(ply)
+	if not database.state == 0 then
+		notifyerror( 'SQL Connection not open.' )
+		return false
+	else
+		local queryText = queries['check_user']:format(ply:SteamID(),'%'..erayan_config.server..'%')
+		-- print('Query',queryText)
+	local query = database:query(queryText)
+	if (query) then
+		query.onFailure = checkUserOnFailure
+		query.onSuccess = checkUserOnSuccess
+		query.onData = checkUserOnData
+		query.ply = ply
+		query:start()
+		---- print('-----------------------Added User-----------------------')
+	else
+		table.insert(database.pending, {queryText, str})
+		CheckStatus()
+		-- print('-----------------------User Query Pending-----------------------')
+	end
+
+	end
+end
+
+function checkUserOnFailure(self, err)
+	notifyerror( 'SQL LogAdd fail ',err )
+end
+
+function checkUserOnSuccess()
+	-- print( '-----------------------Checked User----------------------- ')
+end
+
+function checkUserOnData(self, datarow)
+	print('-----------------------Recieved User Data----------------------- ')
+	print('DataRow', datarow['Hits'])
+	if self.ply:IsBot() then 
+		print('-----------------------We dont want bots in our DB----------------------- ')
+		return 0
+	end
+	print(type(datarow['Hits']),datarow['Hits'])
+	if datarow['Hits'] == 0 then
+		print('-----------------------Adding...----------------------- ')
+		doAddUser(self.ply)
+	end
 end
 
 function  pendingOnFailure(self, err)
 	notifyerror( 'Pending SQL could\'t execute',err )
 end
 
-function  pendingOnSucces()
+function  pendingOnSuccess()
 	-- print( '-----------------------Processed pending query----------------------- ')
 end
 
@@ -105,6 +189,11 @@ function databaseOnConnected(self)
 	self.pending = {};
 
 end
+
+local function getIP(ply)
+	return cleanIP(ply:IPAddress());
+end
+
 
 -- Hooks
 do
