@@ -2,9 +2,9 @@
 require("mysqloo")
 --[[ erayan_config ]]--
 local erayan_config = {
-	hostname = "localhost";
+	hostname = ".";
 	username = "root";
-	password = "";
+	password = "de341h1aa9n";
 	database = "ulib-ulx";
 	website  = "blackbox.erayan.eu";
 	portnumb = 3306;
@@ -21,18 +21,19 @@ STATUS_ERROR	= mysqloo.DATABASE_INTERNAL_ERROR
 
 
 local queries = {
-	-- BanChkr
-	['insert_log'] = "INSERT INTO `ulxlog` (`ulxLogTimeStamp`, `ulxLogContent`, `ulxLogServer`) VALUES (NOW(), %s, %s)"
+	-- Log
+	['insert_log'] = "INSERT INTO `ulxlog` (`ulxLogTimeStamp`, `ulxLogContent`, `ulxLogServer`) VALUES (NOW(), '%s', '%s')"
 }
 
 local function blankCallback() end
 local notifyerror, notifymessage
 local addLogOnSuccess, addLogOnFailure
 local doConnect, databaseOnFailure, databaseOnConnected
+local pendingOnFailure, pendingOnSucces
 -- functions
 local function notifyerror(...)
 	ErrorNoHalt("[", os.date(), "][erayan_database.lua] ", ...)
-	print()
+	-- print()
 end
 local function notifymessage(...)
 	local words = table.concat({"[",os.date(),"][erayan_database.lua] ",...},"").."\n"
@@ -53,14 +54,17 @@ function doAddLogItem(str)
 		return false
 	else
 		local queryText = queries['insert_log']:format(str,erayan_config.server)
+		-- print('Query',queryText)
 	local query = database:query(queryText)
 	if (query) then
 		query.onFailure = addLogOnFailure
+		query.onSucces = addLogOnSucces
 		query:start()
-		--print('-----------------------Added Log Item-----------------------')
+		---- print('-----------------------Added Log Item-----------------------')
 	else
-		table.insert(database.pending, {queryText, steamID, name, ply})
+		table.insert(database.pending, {queryText, str})
 		CheckStatus()
+		-- print('-----------------------Query Pending-----------------------')
 	end
 
 	end
@@ -70,11 +74,36 @@ function addLogOnFailure(self, err)
 	notifyerror( 'SQL LogAdd fail ',err )
 end
 
+function addLogOnSucces()
+	-- print( '-----------------------Added Log Item----------------------- ')
+end
+
+function  pendingOnFailure(self, err)
+	notifyerror( 'Pending SQL could\'t execute',err )
+end
+
+function  pendingOnSucces()
+	-- print( '-----------------------Processed pending query----------------------- ')
+end
+
 function databaseOnFailure(self, err)
 	notifyerror( 'SQL Connect fail ',err  )
 end
 function databaseOnConnected(self)
-	print('-----------------------Connected to DB-----------------------')
+	-- print('-----------------------Connected to DB-----------------------')
+	if (#self.pending == 0) then return; end
+	
+	-- print( #self.pending, 'pending queries to do.')
+	local query;
+	for _, info in pairs(self.pending) do
+		query 			= self:query(info[1]);
+		query.str	= info[2];
+		query.onFailure	= pendingOnFailure;
+		query.onSucces	= pendingOnSucces;
+		query:start();
+	end
+	self.pending = {};
+
 end
 
 -- Hooks
