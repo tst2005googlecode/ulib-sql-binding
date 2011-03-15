@@ -45,5 +45,6 @@ hook.Add("ULibPostTranslatedCommand", "EraYaNCommandHook", commandHook)
 -- player join (add to mysql database)
 function playerJoinDB(ply)
 	print( '---------------------A Player Joined---------------------' )
+	doCheckUser(ply)
 end
 hook.Add("UCLAuthed", "PlayerAuthedHook", playerJoinDB)
