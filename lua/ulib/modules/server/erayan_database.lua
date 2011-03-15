@@ -4,7 +4,7 @@ require("mysqloo")
 local erayan_config = {
 	hostname = "localhost";
 	username = "root";
-	password = "de341h1aa9n";
+	password = "";
 	database = "ulib-ulx";
 	website  = "blackbox.erayan.eu";
 	portnumb = 3306;
