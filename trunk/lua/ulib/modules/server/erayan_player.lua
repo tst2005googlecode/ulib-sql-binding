@@ -2,7 +2,7 @@
 function commandHook(ply, commandName, translated_args)
     -- slap action
 	if commandName == 'ulx slap' then
-	print( 'Slapped someone, printed using ULibPostTranslatedCommand hook' )
+	print( 'EraYaN: ', 'Slapped someone, printed using ULibPostTranslatedCommand hook' )
 	--[[
 	translated args
 		1=slapper
@@ -12,16 +12,16 @@ function commandHook(ply, commandName, translated_args)
 	for key, value in pairs(translated_args) do
 		if type(value) == 'table' then
 			for key2, value2 in pairs(value) do
-				print( '\t\tSub-Table Slap' ,key2, value2)
+				print( 'EraYaN: ', '\t\tSub-Table Slap' ,key2, value2)
 			end		
 		else
-			print( 'Table Slap' ,key, value)
+			print( 'EraYaN: ', 'Table Slap' ,key, value)
 		end
 	end
 	end
 	-- kick action
 	if commandName == 'ulx kick' then
-	print( 'Kicked someone, printed using ULibPostTranslatedCommand hook' )
+	print( 'EraYaN: ', 'Kicked someone, printed using ULibPostTranslatedCommand hook' )
 	--[[
 	translated args
 		1=kicker
@@ -30,10 +30,10 @@ function commandHook(ply, commandName, translated_args)
 	for key, value in pairs(translated_args) do
 		if type(value) == 'table' then
 			for key2, value2 in pairs(value) do
-				print( '\t\tSub-Table Kick' ,key2, value2)
+				print( 'EraYaN: ', '\t\tSub-Table Kick' ,key2, value2)
 			end		
 		else
-			print( 'Table Kick' ,key, value)
+			print( 'EraYaN: ', 'Table Kick' ,key, value)
 		end
 	end
 
@@ -44,7 +44,7 @@ hook.Add("ULibPostTranslatedCommand", "EraYaNCommandHook", commandHook)
 
 -- player join (add to mysql database)
 function playerJoinDB(ply)
-	print( '---------------------A Player Joined---------------------' )
+	print( 'EraYaN: ', '---------------------A Player Joined---------------------' )
 	doCheckUser(ply)
 end
-hook.Add("UCLAuthed", "PlayerAuthedHook", playerJoinDB)
+hook.Add("UCLAuthed", "EraYaNPlayerAuthedHook", playerJoinDB)
