@@ -62,17 +62,17 @@ function doAddLogItem(str)
 		return false
 	else
 		local queryText = queries['insert_log']:format(str,erayan_config.server)
-		-- print('Query',queryText)
+		print( 'EraYaN: ','Query',queryText)
 	local query = database:query(queryText)
 	if (query) then
 		query.onFailure = addLogOnFailure
 		query.onSuccess = addLogOnSuccess
 		query:start()
-		---- print('-----------------------Added Log Item-----------------------')
+		print( 'EraYaN: ','-----------------------Added Log Item-----------------------')
 	else
 		table.insert(database.pending, {queryText, str})
 		CheckStatus()
-		-- print('-----------------------Log Query Pending-----------------------')
+		print( 'EraYaN: ','-----------------------Log Query Pending-----------------------')
 	end
 
 	end
@@ -83,7 +83,7 @@ function addLogOnFailure(self, err)
 end
 
 function addLogOnSuccess()
-	-- print( '-----------------------Added Log Item----------------------- ')
+	print( 'EraYaN: ', '-----------------------Added Log Item----------------------- ')
 end
 
 function doAddUser(ply)
@@ -92,17 +92,17 @@ function doAddUser(ply)
 		return false
 	else
 		local queryText = queries['insert_user']:format(ply:SteamID(),ply:GetName(),getIP(ply),getIP(ply),erayan_config.server)
-		-- print('Query',queryText)
+		print( 'EraYaN: ','Query',queryText)
 	local query = database:query(queryText)
 	if (query) then
 		query.onFailure = addUserOnFailure
 		query.onSuccess = addUserOnSuccess
 		query:start()
-		---- print('-----------------------Added User-----------------------')
+		print( 'EraYaN: ','-----------------------Added User-----------------------')
 	else
 		table.insert(database.pending, {queryText, str})
 		CheckStatus()
-		-- print('-----------------------User Query Pending-----------------------')
+		print( 'EraYaN: ','-----------------------Add User Query Pending-----------------------')
 	end
 
 	end
@@ -113,7 +113,7 @@ function addUserOnFailure(self, err)
 end
 
 function addUserOnSuccess()
-	print( '-----------------------Added User----------------------- ')
+	print( 'EraYaN: ', '-----------------------Added User----------------------- ')
 end
 
 function doCheckUser(ply)
@@ -122,7 +122,7 @@ function doCheckUser(ply)
 		return false
 	else
 		local queryText = queries['check_user']:format(ply:SteamID(),'%'..erayan_config.server..'%')
-		-- print('Query',queryText)
+		print( 'EraYaN: ','Query',queryText)
 	local query = database:query(queryText)
 	if (query) then
 		query.onFailure = checkUserOnFailure
@@ -130,11 +130,11 @@ function doCheckUser(ply)
 		query.onData = checkUserOnData
 		query.ply = ply
 		query:start()
-		---- print('-----------------------Added User-----------------------')
+		print( 'EraYaN: ','-----------------------Checked User-----------------------')
 	else
 		table.insert(database.pending, {queryText, str})
 		CheckStatus()
-		-- print('-----------------------User Query Pending-----------------------')
+		print( 'EraYaN: ','-----------------------Check User Query Pending-----------------------')
 	end
 
 	end
@@ -145,19 +145,19 @@ function checkUserOnFailure(self, err)
 end
 
 function checkUserOnSuccess()
-	-- print( '-----------------------Checked User----------------------- ')
+	print( 'EraYaN: ', '-----------------------Checked User----------------------- ')
 end
 
 function checkUserOnData(self, datarow)
-	print('-----------------------Recieved User Data----------------------- ')
-	print('DataRow', datarow['Hits'])
+	print( 'EraYaN: ','-----------------------Recieved User Data----------------------- ')
+	print( 'EraYaN: ','DataRow', datarow['Hits'])
 	if self.ply:IsBot() then 
-		print('-----------------------We dont want bots in our DB----------------------- ')
+		print( 'EraYaN: ','-----------------------We dont want bots in our DB----------------------- ')
 		return 0
 	end
-	print(type(datarow['Hits']),datarow['Hits'])
+	print( 'EraYaN: ',type(datarow['Hits']),datarow['Hits'])
 	if datarow['Hits'] == 0 then
-		print('-----------------------Adding...----------------------- ')
+		print( 'EraYaN: ','-----------------------Adding...----------------------- ')
 		doAddUser(self.ply)
 	end
 end
@@ -167,17 +167,17 @@ function  pendingOnFailure(self, err)
 end
 
 function  pendingOnSuccess()
-	-- print( '-----------------------Processed pending query----------------------- ')
+	print( 'EraYaN: ', '-----------------------Processed pending query----------------------- ')
 end
 
 function databaseOnFailure(self, err)
 	notifyerror( 'SQL Connect fail ',err  )
 end
 function databaseOnConnected(self)
-	-- print('-----------------------Connected to DB-----------------------')
+	print( 'EraYaN: ','-----------------------Connected to DB-----------------------')
 	if (#self.pending == 0) then return; end
 	
-	-- print( #self.pending, 'pending queries to do.')
+	print( 'EraYaN: ', #self.pending, 'pending queries to do.')
 	local query;
 	for _, info in pairs(self.pending) do
 		query 			= self:query(info[1]);
