@@ -27,7 +27,10 @@ local queries = {
 	['insert_user'] = "INSERT INTO `ulib-ulx`.`ulibuser` "..
 	"(`ulibUserSteamID`, `ulibUserName`, `ulibUserGroupID`, `ulibUserLastVisited`, `ulibUserFirstVisited`, `ulibUserTimesVisited`, `ulibUserLastUsedIP`, `ulibUserFirstUsedIP`, `ulibUserServers`)"..
 	" VALUES ('%s', '%s', 0, NOW(), NOW(), 1, '%s', '%s', 'TTT');";
-	['check_user'] = "SELECT COUNT(*) AS Hits FROM `ulib-ulx`.`ulibuser` WHERE ulibUserSteamID = '%s' AND ulibUserServers LIKE \'%s'\;"
+	['check_user'] = "SELECT *, COUNT(*) AS Hits FROM `ulib-ulx`.`ulibuser` WHERE ulibUserSteamID = '%s' LIMIT 1;";
+	['update_user'] = "UPDATE `ulib-ulx`.`ulibuser` SET `ulibUserName`='%s', `ulibUserLastVisited`=NOW(), `ulibUserTimesVisited`=`ulibUserTimesVisited`+1, `ulibUserLastUsedIP`='%s', `ulibUserServers`=%s WHERE `ulibUserID`=%i;"
+
+
 }
 
 local function blankCallback() end
@@ -35,14 +38,24 @@ local notifyerror, notifymessage
 local addLogOnSuccess, addLogOnFailure
 local doConnect, databaseOnFailure, databaseOnConnected
 local pendingOnFailure, pendingOnSuccess
-local getIP
+local getIP, cleanIP
 local doAddUser, addUserOnFailure, addUserOnSuccess
+local doUpdateUser, updateOnFailure, updateOnSuccess
+
 -- functions
-local function notifyerror(...)
+function cleanIP(ip)
+	return string.match(ip, "(%d+%.%d+%.%d+%.%d+)");
+end
+function getIP(ply)
+	return cleanIP(ply:IPAddress());
+end
+
+
+function notifyerror(...)
 	ErrorNoHalt("[", os.date(), "][erayan_database.lua] ", ...)
 	print()
 end
-local function notifymessage(...)
+function notifymessage(...)
 	local words = table.concat({"[",os.date(),"][erayan_database.lua] ",...},"").."\n"
 	ServerLog(words)
 	Msg(words)
@@ -98,9 +111,9 @@ function doAddUser(ply)
 		query.onFailure = addUserOnFailure
 		query.onSuccess = addUserOnSuccess
 		query:start()
-		print( 'EraYaN: ','-----------------------Added User-----------------------')
+		print( 'EraYaN: ','-----------------------Adding User-----------------------')
 	else
-		table.insert(database.pending, {queryText, str})
+		table.insert(database.pending, {queryText})
 		CheckStatus()
 		print( 'EraYaN: ','-----------------------Add User Query Pending-----------------------')
 	end
@@ -130,9 +143,9 @@ function doCheckUser(ply)
 		query.onData = checkUserOnData
 		query.ply = ply
 		query:start()
-		print( 'EraYaN: ','-----------------------Checked User-----------------------')
+		print( 'EraYaN: ','-----------------------Checking User-----------------------')
 	else
-		table.insert(database.pending, {queryText, str})
+		table.insert(database.pending, {queryText})
 		CheckStatus()
 		print( 'EraYaN: ','-----------------------Check User Query Pending-----------------------')
 	end
@@ -156,10 +169,49 @@ function checkUserOnData(self, datarow)
 		return 0
 	end
 	print( 'EraYaN: ',type(datarow['Hits']),datarow['Hits'])
-	if datarow['Hits'] < 1 then
+	if datarow['Hits']  == "0" then
 		print( 'EraYaN: ','-----------------------Adding...----------------------- ')
 		doAddUser(self.ply)
+		else
+		-- update info
+		local servers
+		if string.find( datarow['ulibUserServers'], erayan_config.server, 0, true ) then
+			servers = "CONCAT_WS(',','ulibUserServers')"
+		else
+			servers = "CONCAT_WS(',',ulibUserServers,'TTT')"
+		end
+		doUpdateUser(self.ply, servers, datarow['ulibUserID'])
 	end
+end
+
+function doUpdateUser(ply, servers, id)
+	if not database.state == 0 then
+		notifyerror( 'SQL Connection not open.' )
+		return false
+	else
+		local queryText = queries['update_user']:format(ply:GetName(), getIP(ply), servers, id)
+		print( 'EraYaN: ','Query',queryText)
+	local query = database:query(queryText)
+	if (query) then
+		query.onFailure = updateUserOnFailure
+		query.onSuccess = updateUserOnSuccess
+		query:start()
+		print( 'EraYaN: ','-----------------------Updating User-----------------------')
+	else
+		table.insert(database.pending, {queryText})
+		CheckStatus()
+		print( 'EraYaN: ','-----------------------Update User Query Pending-----------------------')
+	end
+
+	end
+end
+
+function updateUserOnFailure(self, err)
+	notifyerror( 'SQL Update User Fail ',err )
+end
+
+function updateUserOnSuccess()
+	print( 'EraYaN: ', '-----------------------Updated User----------------------- ')
 end
 
 function  pendingOnFailure(self, err)
@@ -181,7 +233,6 @@ function databaseOnConnected(self)
 	local query;
 	for _, info in pairs(self.pending) do
 		query 			= self:query(info[1]);
-		query.str	= info[2];
 		query.onFailure	= pendingOnFailure;
 		query.onSucces	= pendingOnSucces;
 		query:start();
@@ -189,11 +240,6 @@ function databaseOnConnected(self)
 	self.pending = {};
 
 end
-
-local function getIP(ply)
-	return cleanIP(ply:IPAddress());
-end
-
 
 -- Hooks
 do
