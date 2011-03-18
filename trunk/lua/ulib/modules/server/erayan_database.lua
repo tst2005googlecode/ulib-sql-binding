@@ -156,7 +156,7 @@ function checkUserOnData(self, datarow)
 		return 0
 	end
 	print( 'EraYaN: ',type(datarow['Hits']),datarow['Hits'])
-	if datarow['Hits'] == 0 then
+	if datarow['Hits'] < 1 then
 		print( 'EraYaN: ','-----------------------Adding...----------------------- ')
 		doAddUser(self.ply)
 	end
