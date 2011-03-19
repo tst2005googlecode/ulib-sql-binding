@@ -176,7 +176,7 @@ function checkUserOnData(self, datarow)
 		-- update info
 		local servers
 		if string.find( datarow['ulibUserServers'], erayan_config.server, 0, true ) then
-			servers = "CONCAT_WS(',','ulibUserServers')"
+			servers = "CONCAT_WS(',',ulibUserServers)"
 		else
 			servers = "CONCAT_WS(',',ulibUserServers,'TTT')"
 		end
