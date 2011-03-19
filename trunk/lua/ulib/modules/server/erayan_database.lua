@@ -105,6 +105,7 @@ function doAddUser(ply)
 		notifyerror( 'SQL Connection not open.' )
 		return false
 	else
+	if ply:IsBot() then return end
 		local queryText = queries['insert_user']:format(ply:SteamID(),ply:GetName(),getIP(ply),getIP(ply),erayan_config.server)
 		print( 'EraYaN: ','Query',queryText)
 	local query = database:query(queryText)
@@ -135,6 +136,7 @@ function doCheckUser(ply)
 		notifyerror( 'SQL Connection not open.' )
 		return false
 	else
+	if ply:IsBot() then return end
 		local queryText = queries['select_user']:format(ply:SteamID(),erayan_config.server)
 		print( 'EraYaN: ','Query',queryText)
 	local query = database:query(queryText)
@@ -179,12 +181,13 @@ function checkUserOnData(self, datarow)
 	end
 end
 
-function doUpdateUser(ply)
+function doUpdateUser(ply, id)
 	if not database.state == 0 then
 		notifyerror( 'SQL Connection not open.' )
 		return false
 	else
-		local queryText = queries['update_user']:format(ply:GetName(), getIP(ply), ply:SteamID())
+	if ply:IsBot() then return end
+		local queryText = queries['update_user']:format(ply:GetName(), getIP(ply), id)
 		print( 'EraYaN: ','Query',queryText)
 	local query = database:query(queryText)
 	if (query) then
@@ -209,12 +212,13 @@ function updateUserOnSuccess()
 	print( 'EraYaN: ', '-----------------------Updated User----------------------- ')
 end
 
-function doUpdateUser2(ply, id)
+function doUpdateUser2(ply)
 	if not database.state == 0 then
 		notifyerror( 'SQL Connection not open.' )
 		return false
 	else
-		local queryText = queries['update_user_2']:format(ply:GetName(), ply:Frags(), ply:Deaths(), id)
+	if ply:IsBot() then return end
+		local queryText = queries['update_user_2']:format(ply:GetName(), ply:Frags(), ply:Deaths(), ply:SteamID*()
 		print( 'EraYaN: ','Query',queryText)
 	local query = database:query(queryText)
 	if (query) then
