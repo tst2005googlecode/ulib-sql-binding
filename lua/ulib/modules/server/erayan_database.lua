@@ -2,10 +2,10 @@
 require("mysqloo")
 --[[ erayan_config ]]--
 local erayan_config = {
-	hostname = ".";
-	username = "root";
-	password = "de341h1aa9n";
-	database = "ulib-ulx";
+	hostname = "erayan.eu";
+	username = "dehaantj_ulibulx";
+	password = "tub561vihis3";
+	database = "dehaantj_ulib_ulx";
 	website  = "blackbox.erayan.eu";
 	portnumb = 3306;
 	server = "TTT";
@@ -21,14 +21,15 @@ STATUS_ERROR	= mysqloo.DATABASE_INTERNAL_ERROR
 
 
 local queries = {
-	-- Log
+	-- Log (insert)
 	['insert_log'] = "INSERT INTO `ulxlog` (`ulxLogTimeStamp`, `ulxLogContent`, `ulxLogServer`) VALUES (NOW(), '%s', '%s')";
-	-- Users
-	['insert_user'] = "INSERT INTO `ulib-ulx`.`ulibuser` "..
-	"(`ulibUserSteamID`, `ulibUserName`, `ulibUserGroupID`, `ulibUserLastVisited`, `ulibUserFirstVisited`, `ulibUserTimesVisited`, `ulibUserLastUsedIP`, `ulibUserFirstUsedIP`, `ulibUserServers`)"..
-	" VALUES ('%s', '%s', 0, NOW(), NOW(), 1, '%s', '%s', 'TTT');";
-	['check_user'] = "SELECT *, COUNT(*) AS Hits FROM `ulib-ulx`.`ulibuser` WHERE ulibUserSteamID = '%s' LIMIT 1;";
-	['update_user'] = "UPDATE `ulib-ulx`.`ulibuser` SET `ulibUserName`='%s', `ulibUserLastVisited`=NOW(), `ulibUserTimesVisited`=`ulibUserTimesVisited`+1, `ulibUserLastUsedIP`='%s', `ulibUserServers`=%s WHERE `ulibUserID`=%i;"
+	-- Users (insert, select, update)
+	['insert_user'] = "INSERT INTO `ulibuser` "..
+	"(`ulibUserSteamID`, `ulibUserName`, `ulibUserGroupID`, `ulibUserLastVisited`, `ulibUserFirstVisited`, `ulibUserTimesVisited`, `ulibUserLastUsedIP`, `ulibUserFirstUsedIP`, `ulibUserServer`)"..
+	" VALUES ('%s', '%s', 0, NOW(), NOW(), 1, '%s', '%s', '%s');";
+	['select_user'] = "SELECT *, COUNT(*) AS Hits FROM `ulibuser` WHERE ulibUserSteamID = '%s' AND ulibUserServer = '%s' LIMIT 1;";
+	['update_user'] = "UPDATE `ulibuser` SET `ulibUserName`='%s', `ulibUserLastVisited`=NOW(), `ulibUserTimesVisited`=`ulibUserTimesVisited`+1, `ulibUserLastUsedIP`='%s' WHERE `ulibUserID`=%i;";
+	['update_user_2'] = "UPDATE `ulibuser` SET `ulibUserName`='%s', `ulibUserLastVisited`=NOW(), `ulibUserFrags`=`ulibUserFrags`+%i,`ulibUserDeaths`=`ulibUserDeaths`+%i WHERE `ulibUserSteamID`=%s;";
 
 
 }
@@ -81,11 +82,11 @@ function doAddLogItem(str)
 		query.onFailure = addLogOnFailure
 		query.onSuccess = addLogOnSuccess
 		query:start()
-		print( 'EraYaN: ','-----------------------Added Log Item-----------------------')
+		print( 'EraYaN: ','-----------------------Adding Log Item-----------------------')
 	else
 		table.insert(database.pending, {queryText, str})
 		CheckStatus()
-		print( 'EraYaN: ','-----------------------Log Query Pending-----------------------')
+		print( 'EraYaN: ','-----------------------Add Log Query Pending-----------------------')
 	end
 
 	end
@@ -95,7 +96,7 @@ function addLogOnFailure(self, err)
 	notifyerror( 'SQL LogAdd fail ',err )
 end
 
-function addLogOnSuccess()
+function addLogOnSuccess(query)
 	print( 'EraYaN: ', '-----------------------Added Log Item----------------------- ')
 end
 
@@ -125,7 +126,7 @@ function addUserOnFailure(self, err)
 	notifyerror( 'SQL Add User Fail ',err )
 end
 
-function addUserOnSuccess()
+function addUserOnSuccess(query)
 	print( 'EraYaN: ', '-----------------------Added User----------------------- ')
 end
 
@@ -134,7 +135,7 @@ function doCheckUser(ply)
 		notifyerror( 'SQL Connection not open.' )
 		return false
 	else
-		local queryText = queries['check_user']:format(ply:SteamID(),'%'..erayan_config.server..'%')
+		local queryText = queries['select_user']:format(ply:SteamID(),erayan_config.server)
 		print( 'EraYaN: ','Query',queryText)
 	local query = database:query(queryText)
 	if (query) then
@@ -157,8 +158,9 @@ function checkUserOnFailure(self, err)
 	notifyerror( 'SQL LogAdd fail ',err )
 end
 
-function checkUserOnSuccess()
+function checkUserOnSuccess(query)
 	print( 'EraYaN: ', '-----------------------Checked User----------------------- ')
+	--PrintTable(query:getData())
 end
 
 function checkUserOnData(self, datarow)
@@ -173,23 +175,16 @@ function checkUserOnData(self, datarow)
 		print( 'EraYaN: ','-----------------------Adding...----------------------- ')
 		doAddUser(self.ply)
 		else
-		-- update info
-		local servers
-		if string.find( datarow['ulibUserServers'], erayan_config.server, 0, true ) then
-			servers = "CONCAT_WS(',',ulibUserServers)"
-		else
-			servers = "CONCAT_WS(',',ulibUserServers,'TTT')"
-		end
-		doUpdateUser(self.ply, servers, datarow['ulibUserID'])
+		doUpdateUser(self.ply,  datarow['ulibUserID'])
 	end
 end
 
-function doUpdateUser(ply, servers, id)
+function doUpdateUser(ply)
 	if not database.state == 0 then
 		notifyerror( 'SQL Connection not open.' )
 		return false
 	else
-		local queryText = queries['update_user']:format(ply:GetName(), getIP(ply), servers, id)
+		local queryText = queries['update_user']:format(ply:GetName(), getIP(ply), ply:SteamID())
 		print( 'EraYaN: ','Query',queryText)
 	local query = database:query(queryText)
 	if (query) then
@@ -212,6 +207,36 @@ end
 
 function updateUserOnSuccess()
 	print( 'EraYaN: ', '-----------------------Updated User----------------------- ')
+end
+
+function doUpdateUser2(ply, id)
+	if not database.state == 0 then
+		notifyerror( 'SQL Connection not open.' )
+		return false
+	else
+		local queryText = queries['update_user_2']:format(ply:GetName(), ply:Frags(), ply:Deaths(), id)
+		print( 'EraYaN: ','Query',queryText)
+	local query = database:query(queryText)
+	if (query) then
+		query.onFailure = updateUser2OnFailure
+		query.onSuccess = updateUser2OnSuccess
+		query:start()
+		print( 'EraYaN: ','-----------------------Updating User (2)-----------------------')
+	else
+		table.insert(database.pending, {queryText})
+		CheckStatus()
+		print( 'EraYaN: ','-----------------------Update User (2) Query Pending-----------------------')
+	end
+
+	end
+end
+
+function updateUser2OnFailure(self, err)
+	notifyerror( 'SQL Update User Fail ',err )
+end
+
+function updateUser2OnSuccess()
+	print( 'EraYaN: ', '-----------------------Updated User (2)----------------------- ')
 end
 
 function  pendingOnFailure(self, err)
@@ -250,6 +275,8 @@ local function ShutDown()
 	end
 
 hook.Add("ShutDown", "EraYaNDBShutdown", ShutDown)
+
+hook.Add( "PlayerDisconnected", "EraYaNPlayerDisconnected", doUpdateUser2 )
 end
 
 -- Checks the status of the database and recovers if there are errors
