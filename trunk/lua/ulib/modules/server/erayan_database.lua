@@ -29,7 +29,7 @@ local queries = {
 	" VALUES ('%s', '%s', 0, NOW(), NOW(), 1, '%s', '%s', '%s');";
 	['select_user'] = "SELECT *, COUNT(*) AS Hits FROM `ulibuser` WHERE ulibUserSteamID = '%s' AND ulibUserServer = '%s' LIMIT 1;";
 	['update_user'] = "UPDATE `ulibuser` SET `ulibUserName`='%s', `ulibUserLastVisited`=NOW(), `ulibUserTimesVisited`=`ulibUserTimesVisited`+1, `ulibUserLastUsedIP`='%s' WHERE `ulibUserID`=%i;";
-	['update_user_2'] = "UPDATE `ulibuser` SET `ulibUserName`='%s', `ulibUserLastVisited`=NOW(), `ulibUserFrags`=`ulibUserFrags`+%i,`ulibUserDeaths`=`ulibUserDeaths`+%i WHERE `ulibUserSteamID`=%s;";
+	['update_user_2'] = "UPDATE `ulibuser` SET `ulibUserName`='%s', `ulibUserLastVisited`=NOW(), `ulibUserFrags`=`ulibUserFrags`+%i,`ulibUserDeaths`=`ulibUserDeaths`+%i WHERE `ulibUserSteamID`='%s';";
 
 
 }
@@ -218,7 +218,7 @@ function doUpdateUser2(ply)
 		return false
 	else
 	if ply:IsBot() then return end
-		local queryText = queries['update_user_2']:format(ply:GetName(), ply:Frags(), ply:Deaths(), ply:SteamID*()
+		local queryText = queries['update_user_2']:format(ply:GetName(), ply:Frags(), ply:Deaths(), ply:SteamID())
 		print( 'EraYaN: ','Query',queryText)
 	local query = database:query(queryText)
 	if (query) then
