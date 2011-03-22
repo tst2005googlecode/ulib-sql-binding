@@ -30,8 +30,15 @@ local queries = {
 	['select_user'] = "SELECT *, COUNT(*) AS Hits FROM `ulibuser` WHERE ulibUserSteamID = '%s' AND ulibUserServer = '%s' LIMIT 1;";
 	['update_user'] = "UPDATE `ulibuser` SET `ulibUserName`='%s', `ulibUserLastVisited`=NOW(), `ulibUserTimesVisited`=`ulibUserTimesVisited`+1, `ulibUserLastUsedIP`='%s' WHERE `ulibUserID`=%i;";
 	['update_user_2'] = "UPDATE `ulibuser` SET `ulibUserName`='%s', `ulibUserLastVisited`=NOW(), `ulibUserFrags`=`ulibUserFrags`+%i,`ulibUserDeaths`=`ulibUserDeaths`+%i WHERE `ulibUserSteamID`='%s';";
-
-
+   -- Groups
+  ['select_group_list'] = "SELECT * FROM `ulcgroup` WHERE `ulibGroupServer` = '%s' ";
+  ['select_group'] = "SELECT * FROM `uclgroup` WHERE `ulibGroupID` = '%i' ";
+  ['insert_group'] = "INSERT INTO `uclgroup` (`uclGroupName`, `uclGroupDisplayName`, `uclGroupServer`) VALUES ('%s', '%s', '%s')";
+  -- Permissions
+  ['insert_permission'] = "INSERT INTO `uclpermission` () VALUES ()";
+  ['select_permission_user'] = "SELECT * FROM `uclpermission` WHERE `uclPermissionID` = %i";
+  ['delete_permission'] = "DELETE FROM `uclpermission` WHERE `uclPermissionID` = %i";
+  ['delete_permission_user'] = "DELETE FROM `uclpermission` WHERE `uclPermissionUserID` = '%s'";
 }
 
 local function blankCallback() end
@@ -174,7 +181,7 @@ function checkUserOnData(self, datarow)
 	end
 	print( 'EraYaN: ',type(datarow['Hits']),datarow['Hits'])
 	if datarow['Hits']  == "0" then
-		print( 'EraYaN: ','-----------------------Adding...----------------------- ')
+    print( 'EraYaN: ','-----------------------Adding user...----------------------- ')
 		doAddUser(self.ply)
 		else
 		doUpdateUser(self.ply,  datarow['ulibUserID'])
