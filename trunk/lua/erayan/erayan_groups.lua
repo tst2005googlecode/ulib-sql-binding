@@ -36,9 +36,7 @@ end
 function erayan.addGroupOnSuccess()
 	print( 'EraYaN: ', '-----------------------Added Group----------------------- ')
 end
-function stats(query)
-print('EraYaN: ', 'Query Status',query:status(), 'Database Status',erayan.database:status())
-end
+
 function erayan.doCheckGroup(name, inherit_from, displayname, can_target)
 	if not erayan.database:status() == 0 then
 		notifyerror( 'SQL Connection not open.' )
@@ -63,11 +61,9 @@ function erayan.doCheckGroup(name, inherit_from, displayname, can_target)
 		query.can_target = can_target
 		query:start()
 		print( 'EraYaN: ','-----------------------Checking Group-----------------------')
-		stats(query)
-		timer.Create(name, 5, 1, stats, query)
-		print( 'EraYaN: ',query.name,query.inherit_from,query.displayname,query.can_target)
+		--print( 'EraYaN: ',query.name,query.inherit_from,query.displayname,query.can_target)
 	else
-		table.insert(erayan.database.pending, {queryText})
+		table.insert(erayan.database.pending, {queryText; onData=erayan.checkGroupOnData})
 		erayan.CheckStatus()
 		print( 'EraYaN: ','-----------------------Check Group Query Pending-----------------------')
 	end
@@ -86,8 +82,6 @@ end
 
 function erayan.checkGroupOnData(self, datarow)
 	print( 'EraYaN: ','-----------------------Recieved Group Data----------------------- ')
-	print( 'EraYaN: ','DataRow', datarow['Hits'])
-	print( 'EraYaN: ',type(datarow['Hits']),datarow['Hits'])
 	if datarow['Hits']  == "0" then
 		print( 'EraYaN: ','-----------------------Adding group...----------------------- ')
 		erayan.doAddGroup( self.name, self.inherit_from, self.displayname, self.can_target )

@@ -15,7 +15,7 @@ function erayan.doAddLogItem(str)
 		query.onSuccess = erayan.addLogOnSuccess
 		query.onAborted = erayan.addLogOnAborted
 		query:start()
-		print('EraYaN: ',query:status(),erayan.database:status())
+		--print('EraYaN: ',query:status(),erayan.database:status())
 		print( 'EraYaN: ','-----------------------Adding Log Item-----------------------')		
 	else
 		table.insert(erayan.database.pending, {queryText})
