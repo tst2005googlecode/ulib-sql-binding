@@ -12,9 +12,10 @@ erayan.config = {
 	website  = "blackbox.erayan.eu";
 	portnumb = 3306;
 	server = "TTT";
-	version = "0.8.5.2"
+	version = "0.9.1.0";
+	silent = true
 }
-hook.Add("Initialize", "EraYaNVersion", function() print('EraYaN:','Version',erayan.config.version) end)
+hook.Add("Initialize", "EraYaNVersion", function() erayan.imsg('Version: '..erayan.config.version, false) end)
 function erayan.table_print (tt, indent, done)
   done = done or {}
   indent = indent or 0
@@ -37,4 +38,21 @@ function erayan.table_print (tt, indent, done)
   else
     Msg(tostring(tt) .. "\n")
   end
+end
+
+function erayan.pmsg(str, dashes, ...)
+	if erayan.config.silent then return end
+	if dashes then
+		print( 'EraYaN: ', '------------------'..str..'------------------' )
+	else
+		print( 'EraYaN: ', str, ...)
+	end
+end
+
+function erayan.imsg(str, dashes, ...)
+	if dashes then
+		print( 'EraYaN: ', '------------------'..str..'------------------' )
+	else
+		print( 'EraYaN: ', str, ...)
+	end
 end

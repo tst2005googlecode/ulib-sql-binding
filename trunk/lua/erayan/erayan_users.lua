@@ -9,17 +9,17 @@ function erayan.doAddUser(ply)
 	end
 	if ply:IsBot() then return end
 		local queryText = erayan.queries['insert_user']:format(ply:SteamID(),erayan.database:escape(ply:GetName()),erayan.getIP(ply),erayan.getIP(ply),erayan.config.server)
-		print( 'EraYaN: ','Query',queryText)
+		erayan.pmsg('Query',false,queryText)
 	local query = erayan.database:query(queryText)
 	if query and erayan.database:status() == 0 then
 		query.onFailure = erayan.addUserOnFailure
 		query.onSuccess = erayan.addUserOnSuccess
 		query:start()
-		print( 'EraYaN: ','-----------------------Adding User-----------------------')
+		erayan.pmsg('Adding User',true)
 	else
-		table.insert(erayan.database.pending, {queryText})
+		table.insert(erayan.database.pending, {queryText; queryObj=query})
 		erayan.CheckStatus()
-		print( 'EraYaN: ','-----------------------Add User Query Pending-----------------------')
+		erayan.pmsg('Add User Query Pending',true)
 	end
 
 end
@@ -29,7 +29,7 @@ function erayan.addUserOnFailure(self, err)
 end
 
 function erayan.addUserOnSuccess(query)
-	print( 'EraYaN: ', '-----------------------Added User----------------------- ')
+	erayan.pmsg('Added User',true)
 end
 
 function erayan.doCheckUser(ply)
@@ -39,7 +39,7 @@ function erayan.doCheckUser(ply)
 	end
 	if ply:IsBot() then return end
 		local queryText = erayan.queries['select_user']:format(ply:SteamID(),erayan.config.server)
-		print( 'EraYaN: ','Query',queryText)
+		erayan.pmsg('Query',false,queryText)
 	local query = erayan.database:query(queryText)
 	if query and erayan.database:status() == 0 then
 		query.onFailure = erayan.checkUserOnFailure
@@ -47,11 +47,11 @@ function erayan.doCheckUser(ply)
 		query.onData = erayan.checkUserOnData
 		query.ply = ply
 		query:start()
-		print( 'EraYaN: ','-----------------------Checking User-----------------------')
+		erayan.pmsg('Checking User',true)
 	else
-		table.insert(erayan.database.pending, {queryText; onData=erayan.checkGroupOnData})
+		table.insert(erayan.database.pending, {queryText; queryObj=query; onData=erayan.checkGroupOnData})
 		erayan.CheckStatus()
-		print( 'EraYaN: ','-----------------------Check User Query Pending-----------------------')
+		erayan.pmsg('Check User Query Pending',true)
 	end
 
 end
@@ -61,22 +61,22 @@ function erayan.checkUserOnFailure(self, err)
 end
 
 function erayan.checkUserOnSuccess(query)
-	print( 'EraYaN: ', '-----------------------Checked User----------------------- ')
+	erayan.pmsg('Checked User',true)
 	--PrintTable(query:getData())
 end
 
 function erayan.checkUserOnData(self, datarow)
-	print( 'EraYaN: ','-----------------------Recieved User Data----------------------- ')
+	erayan.pmsg('Recieved User Data',true)
 	if self.ply:IsBot() then 
-		print( 'EraYaN: ','-----------------------We dont want bots in our DB----------------------- ')
+		erayan.pmsg('We dont want bots in our DB',true)
 		return 0
 	end
-	--print( 'EraYaN: ',type(datarow['Hits']),datarow['Hits'])
+	--erayan.pmsg(type(datarow['Hits']),datarow['Hits'])
 	if datarow['Hits']  == "0" then
-		print( 'EraYaN: ','-----------------------Adding user...----------------------- ')
+		erayan.pmsg('Adding user...',true)
 		erayan.doAddUser(self.ply)
 		else
-		print( 'EraYaN: ','-----------------------Updating user...----------------------- ')
+		erayan.pmsg('Updating user...',true)
 		erayan.doUpdateUser(self.ply,  datarow['ulibUserID'])
 	end
 end
@@ -88,17 +88,17 @@ function erayan.doUpdateUser(ply, id)
 	end
 	if ply:IsBot() then return end
 		local queryText = erayan.queries['update_user']:format(erayan.database:escape(ply:GetName()), erayan.getIP(ply), id)
-		print( 'EraYaN: ','Query',queryText)
+		erayan.pmsg('Query',false,queryText)
 	local query = erayan.database:query(queryText)
 	if query and erayan.database:status() == 0 then
 		query.onFailure = erayan.updateUserOnFailure
 		query.onSuccess = erayan.updateUserOnSuccess
 		query:start()
-		print( 'EraYaN: ','-----------------------Updating User-----------------------')
+		erayan.pmsg('Updating User',true)
 	else
-		table.insert(erayan.database.pending, {queryText})
+		table.insert(erayan.database.pending, {queryText; queryObj=query})
 		erayan.CheckStatus()
-		print( 'EraYaN: ','-----------------------Update User Query Pending-----------------------')
+		erayan.pmsg('Update User Query Pending',true)
 	end
 
 end
@@ -108,7 +108,7 @@ function erayan.updateUserOnFailure(self, err)
 end
 
 function erayan.updateUserOnSuccess()
-	print( 'EraYaN: ', '-----------------------Updated User----------------------- ')
+	erayan.pmsg('Updated User',true)
 end
 
 function erayan.doUpdateUser2(ply)
@@ -118,17 +118,17 @@ function erayan.doUpdateUser2(ply)
 	end
 	if ply:IsBot() then return end
 		local queryText = erayan.queries['update_user_2']:format(erayan.database:escape(ply:GetName()), ply:Frags(), ply:Deaths(), ply:SteamID())
-		print( 'EraYaN: ','Query',queryText)
+		erayan.pmsg('Query',false,queryText)
 	local query = erayan.database:query(queryText)
 	if query and erayan.database:status() == 0 then
 		query.onFailure = erayan.updateUser2OnFailure
 		query.onSuccess = erayan.updateUser2OnSuccess
 		query:start()
-		print( 'EraYaN: ','-----------------------Updating User (2)-----------------------')
+		erayan.pmsg('Updating User (2)',true)
 	else
-		table.insert(erayan.database.pending, {queryText})
+		table.insert(erayan.database.pending, {queryText; queryObj=query})
 		erayan.CheckStatus()
-		print( 'EraYaN: ','-----------------------Update User (2) Query Pending-----------------------')
+		erayan.pmsg('Update User (2) Query Pending',true)
 	end
 
 end
@@ -138,5 +138,5 @@ function erayan.updateUser2OnFailure(self, err)
 end
 
 function erayan.updateUser2OnSuccess()
-	print( 'EraYaN: ', '-----------------------Updated User (2)----------------------- ')
+	erayan.pmsg('Updated User (2)',true)
 end

@@ -8,7 +8,7 @@ function erayan.doAddLogItem(str)
 		erayan.CheckStatus()		
 	end
 		local queryText = erayan.queries['insert_log']:format(os.date("%Y-%m-%d %X"),erayan.database:escape(str),erayan.config.server)
-		print( 'EraYaN: ','Query',queryText)
+		erayan.pmsg('Query',false,queryText)
 	local query = erayan.database:query(queryText)
 	if query and erayan.database:status() == 0 then
 		query.onFailure = erayan.addLogOnFailure
@@ -16,11 +16,11 @@ function erayan.doAddLogItem(str)
 		query.onAborted = erayan.addLogOnAborted
 		query:start()
 		--print('EraYaN: ',query:status(),erayan.database:status())
-		print( 'EraYaN: ','-----------------------Adding Log Item-----------------------')		
+		erayan.pmsg('Adding Log Item',true)		
 	else
-		table.insert(erayan.database.pending, {queryText})
+		table.insert(erayan.database.pending, {queryText; queryObj=query})
 		erayan.CheckStatus()
-		print( 'EraYaN: ','-----------------------Add Log Query Pending-----------------------')
+		erayan.pmsg('Add Log Query Pending',true)
 	end
 end
 
@@ -29,9 +29,9 @@ function erayan.addLogOnFailure(self, err)
 end
 
 function erayan.addLogOnSuccess(self)
-	print( 'EraYaN: ', '-----------------------Added Log Item----------------------- ')
+	erayan.pmsg( 'Added Log Item',true)
 end
 
 function erayan.addLogOnAborted(self)
-	print( 'EraYaN: ', '-----------------------Add Log Item Aborted----------------------- ', tostring(self))
+	erayan.pmsg( 'Add Log Item Aborted',true, tostring(self))
 end

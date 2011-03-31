@@ -9,6 +9,8 @@ function ucl.saveGroups()
 	for _, groupInfo in pairs( ucl.groups ) do
 		table.sort( groupInfo.allow )
 	end
+	local permissions = 0
+	local groups = 0
 	ucl.saveGroupsOld()
 	for groupname, data in pairs(ucl.groups) do
 		print('EraYaN:','-Processing Group-',groupname)
@@ -20,16 +22,35 @@ function ucl.saveGroups()
 			local inherit_from = data['inherit_from']
 		end]]--
 			erayan.doCheckGroup(groupname, data['inherit_from'], '', data['can_target'])
-			for key, command in ipairs(data['allow']) do			
-				erayan.doCheckPermission(command, groupname, 'group', 'allow', data['allow'][command])
+			groups = groups + 1
+			if data['allow'] then
+				for key, command in pairs(data['allow']) do
+					local tag = ''
+					if type(key) == 'string' then
+					tag = command
+					command = key					
+					end
+					erayan.doCheckPermission(command, groupname, 'group', 'allow', tag)
+					--erayan.imsg(data['allow'][command],false,tostring(data['allow'][command]),type(data['allow'][command]),tag,command,key,type(key))
+					permissions = permissions + 1
+				end
 			end
-			for key, command in ipairs(data['deny']) do			
-				erayan.doCheckPermission(command, groupname, 'group', 'deny', data['deny'][command])
+			if data['deny'] then
+				for key, command in ipairs(data['deny']) do	
+					local tag = ''
+					if type(key) == 'string' then
+					tag = command
+					command = key					
+					end				
+					erayan.doCheckPermission(command, groupname, 'group', 'deny', tag)
+					permissions = permissions + 1
+				end
 			end
 		else
 			print('EraYaN:','-Processing Group Fail-',groupname,data)
 		end
 	end
+	erayan.imsg('Saved Groups',false,groups..' groups done.',permissions..' permissions done.')
 	--erayan.table_print(ucl.groups,0,false)
 end
 

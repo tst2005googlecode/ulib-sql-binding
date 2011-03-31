@@ -34,7 +34,7 @@ erayan.queries = {
 	" (`ulibPermissionCommand`, `ulibPermissionUserID`, `ulibPermissionKind`, `ulibPermissionServer`, `ulibPermissionTag`, `ulibPermissionUserKind`)"..
 	" VALUES ('%s', %s, '%s', '%s', '%s', '%s');";
 	['update_permission'] = "UPDATE `dehaantj_ulib_ulx`.`ulibpermission` SET `ulibPermissionCommand`='%s', `ulibPermissionUserID`=%s, `ulibPermissionKind`='%s', `ulibPermissionServer`='%s', `ulibPermissionTag`='%s', `ulibPermissionUserKind`='%s' WHERE `ulibPermissionID`=%i;";
-	['select_permission_user'] = "SELECT * FROM `ulibpermission` WHERE `ulibPermissionUserID` = %s AND `ulibPermissionServer` = '%s' AND `ulibPermissionUserKind` = '%s'";
+	['select_permission'] = "SELECT *, COUNT(*) AS Hits FROM `ulibpermission` WHERE `ulibPermissionUserID` = %s AND `ulibPermissionCommand` = '%s' AND `ulibPermissionServer` = '%s' AND `ulibPermissionUserKind` = '%s'";
 	['select_permission_group_id'] = "(SELECT `ulibGroupID` FROM `ulibgroup` WHERE `ulibGroupName` = '%s' AND `ulibGroupServer` = '%s')";
 	['select_permission_user_id'] = "(SELECT `ulibUserID` FROM `ulibuser` WHERE `ulibUserSteamID` = '%s' AND `ulibUserServer` = '%s')";
 	['delete_permission'] = "DELETE FROM `ulibpermission` WHERE `ulibPermissionID` = %i AND `ulibUserServer` = '%s'";
@@ -96,24 +96,30 @@ function erayan.pendingOnFailure(self, err)
 end
 
 function erayan.pendingOnSuccess()
-	print( 'EraYaN: ', '-----------------------Processed pending query----------------------- ')
+	erayan.pmsg( 'Processed pending query',true)
 end
 
 function erayan.databaseOnFailure(self, err)
 	notifyerror( 'SQL Connect fail ',err  )
 end
 function erayan.databaseOnConnected(self)
-	print( 'EraYaN: ','-----------------------Connected to DB-----------------------')
+	erayan.pmsg('Connected to DB',true)
 	if (#self.pending == 0) then return; end
 	
-	print( 'EraYaN: ', #self.pending, 'pending queries to do.')
+	erayan.pmsg( #self.pending, false,'pending queries to do.')
 	local query;
 	for _, info in pairs(self.pending) do
-		query 			= self:query(info[1]);
+		--[[query 			= self:query(info[1]);
 		query.onFailure	= erayan.pendingOnFailure;
 		query.onSuccess	= erayan.pendingOnSuccess;
-		query.onData = info['onData']
+		query.onData = info['onData'] ]]--
+		query = info['queryObj']
 		query:start();
+		local extra = ''
+		if type(info['onData']) == 'function' then
+			extra = ': with callback'
+		end
+		print('EraYaN: ','Pending query executing'..extra..'')
 	end
 	self.pending = {};
 
@@ -137,6 +143,16 @@ end
     
 end 
 concommand.Add( "erayan_status", erayan.fEraYaNStatus )
+
+function erayan.fSaveGroups( player, command, arguments )
+	ULib.ucl:saveGroups()    
+end 
+concommand.Add( "erayan_save_groups", erayan.fSaveGroups )
+
+function erayan.fPrintGroups( player, command, arguments )
+	erayan.table_print(ULib.ucl.groups,0,false)
+end 
+concommand.Add( "erayan_print_groups", erayan.fPrintGroups )
 
 -- Hooks
 do
