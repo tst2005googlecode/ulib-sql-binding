@@ -8,7 +8,7 @@ function erayan.doAddUser(ply)
 		erayan.CheckStatus()		
 	end
 	if ply:IsBot() then return end
-		local queryText = erayan.queries['insert_user']:format(ply:SteamID(),erayan.database:escape(ply:GetName()),getIP(ply),getIP(ply),erayan.config.server)
+		local queryText = erayan.queries['insert_user']:format(ply:SteamID(),erayan.database:escape(ply:GetName()),erayan.getIP(ply),erayan.getIP(ply),erayan.config.server)
 		print( 'EraYaN: ','Query',queryText)
 	local query = erayan.database:query(queryText)
 	if query and erayan.database:status() == 0 then
@@ -88,7 +88,7 @@ function erayan.doUpdateUser(ply, id)
 		erayan.CheckStatus()		
 	end
 	if ply:IsBot() then return end
-		local queryText = erayan.queries['update_user']:format(erayan.database:escape(ply:GetName()), getIP(ply), id)
+		local queryText = erayan.queries['update_user']:format(erayan.database:escape(ply:GetName()), erayan.getIP(ply), id)
 		print( 'EraYaN: ','Query',queryText)
 	local query = erayan.database:query(queryText)
 	if query and erayan.database:status() == 0 then
