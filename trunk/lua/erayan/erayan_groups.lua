@@ -3,10 +3,10 @@ if not erayan then
 end
 
 function erayan.doAddGroup(name, inherit_from, displayname, can_target)
-	if not erayan.database.state == 0 then
+	if not erayan.database:status() == 0 then
 		notifyerror( 'SQL Connection not open.' )
-		return false
-	else
+		erayan.CheckStatus()		
+	end
 	if inherit_from == nil then
 		inherit_from = ''
 	end
@@ -16,18 +16,17 @@ function erayan.doAddGroup(name, inherit_from, displayname, can_target)
 		local queryText = erayan.queries['insert_group']:format(name, inherit_from, erayan.config.server, erayan.database:escape(displayname), erayan.database:escape(can_target))
 		print( 'EraYaN: ','Query',queryText)
 	local query = erayan.database:query(queryText)
-	if (query) then
+	if query and erayan.database:status() == 0 then
 		query.onFailure = erayan.addGroupOnFailure
 		query.onSuccess = erayan.addGroupOnSuccess
 		query:start()
 		print( 'EraYaN: ','-----------------------Adding Group-----------------------')
 	else
 		table.insert(erayan.database.pending, {queryText})
-		CheckStatus()
+		erayan.CheckStatus()
 		print( 'EraYaN: ','-----------------------Add Group Query Pending-----------------------')
 	end
 
-	end
 end
 
 function erayan.addGroupOnFailure(self, err)
@@ -37,12 +36,14 @@ end
 function erayan.addGroupOnSuccess()
 	print( 'EraYaN: ', '-----------------------Added Group----------------------- ')
 end
-
+function stats(query)
+print('EraYaN: ', 'Query Status',query:status(), 'Database Status',erayan.database:status())
+end
 function erayan.doCheckGroup(name, inherit_from, displayname, can_target)
-	if not erayan.database.state == 0 then
+	if not erayan.database:status() == 0 then
 		notifyerror( 'SQL Connection not open.' )
-		return false
-	else
+		erayan.CheckStatus()		
+	end
 	if inherit_from == nil then
 		inherit_from = ''
 	end
@@ -52,7 +53,7 @@ function erayan.doCheckGroup(name, inherit_from, displayname, can_target)
 		local queryText = erayan.queries['select_group']:format(name,erayan.config.server)
 		print( 'EraYaN: ','Query',queryText)
 	local query = erayan.database:query(queryText)
-	if (query) then
+	if query and erayan.database:status() == 0 then
 		query.onFailure = erayan.checkGroupOnFailure
 		query.onSuccess = erayan.checkGroupOnSuccess
 		query.onData = erayan.checkGroupOnData
@@ -62,15 +63,18 @@ function erayan.doCheckGroup(name, inherit_from, displayname, can_target)
 		query.can_target = can_target
 		query:start()
 		print( 'EraYaN: ','-----------------------Checking Group-----------------------')
+		stats(query)
+		timer.Create(name, 5, 1, stats, query)
 		print( 'EraYaN: ',query.name,query.inherit_from,query.displayname,query.can_target)
 	else
 		table.insert(erayan.database.pending, {queryText})
-		CheckStatus()
+		erayan.CheckStatus()
 		print( 'EraYaN: ','-----------------------Check Group Query Pending-----------------------')
 	end
 
-	end
 end
+
+
 
 function erayan.checkGroupOnFailure(self, err)
 	notifyerror( 'SQL Check Group Fail ', err )
@@ -94,24 +98,22 @@ function erayan.checkGroupOnData(self, datarow)
 end
 
 function erayan.doUpdateGroup(id, inherit_from, displayname, can_target)
-	if not erayan.database.state == 0 then
+	if not erayan.database:status() == 0 then
 		notifyerror( 'SQL Connection not open.' )
-		return false
-	else
+		erayan.CheckStatus()		
+	end
 		local queryText = erayan.queries['update_group']:format(inherit_from, erayan.config.server, erayan.database:escape(displayname), erayan.database:escape(can_target), id)
 		print( 'EraYaN: ','Query',queryText)
 	local query = erayan.database:query(queryText)
-	if (query) then
+	if query and erayan.database:status() == 0 then
 		query.onFailure = erayan.updateGroupOnFailure
 		query.onSuccess = erayan.updateGroupOnSuccess
 		query:start()
 		print( 'EraYaN: ','-----------------------Updating Group-----------------------')
 	else
 		table.insert(erayan.database.pending, {queryText})
-		CheckStatus()
+		erayan.CheckStatus()
 		print( 'EraYaN: ','-----------------------Update Group Query Pending-----------------------')
-	end
-
 	end
 end
 

@@ -16,7 +16,7 @@ STATUS_ERROR	= mysqloo.DATABASE_INTERNAL_ERROR
 
 erayan.queries = {
 	-- Log (insert)
-	['insert_log'] = "INSERT INTO `ulxlog` (`ulxLogTimeStamp`, `ulxLogContent`, `ulxLogServer`) VALUES (NOW(), '%s', '%s')";
+	['insert_log'] = "INSERT INTO `ulxlog` (`ulxLogTimeStamp`, `ulxLogContent`, `ulxLogServer`) VALUES ('%s', '%s', '%s')";
 	-- Users (insert, select, update)
 	['insert_user'] = "INSERT INTO `ulibuser` "..
 	"(`ulibUserSteamID`, `ulibUserName`, `ulibUserGroupID`, `ulibUserLastVisited`, `ulibUserFirstVisited`, `ulibUserTimesVisited`, `ulibUserLastUsedIP`, `ulibUserFirstUsedIP`, `ulibUserServer`)"..
@@ -98,17 +98,26 @@ function erayan.databaseOnConnected(self)
 	print( 'EraYaN: ','-----------------------Connected to DB-----------------------')
 	if (#self.pending == 0) then return; end
 	
-	print( 'EraYaN: ', #self.pending, 'pending erayan.queries to do.')
+	print( 'EraYaN: ', #self.pending, 'pending queries to do.')
 	local query;
 	for _, info in pairs(self.pending) do
 		query 			= self:query(info[1]);
 		query.onFailure	= erayan.pendingOnFailure;
-		query.onSucces	= erayan.pendingOnSucces;
+		query.onSuccess	= erayan.pendingOnSuccess;
 		query:start();
 	end
 	self.pending = {};
 
 end
+
+--concommands
+	
+
+function erayan.fEraYaNStatus( player, command, arguments )
+    print('EraYaN: Status', erayan.database:status())
+end
+ 
+concommand.Add( "erayan_status", erayan.fEraYaNStatus )
 
 -- Hooks
 do

@@ -12,7 +12,7 @@ erayan.config = {
 	website  = "blackbox.erayan.eu";
 	portnumb = 3306;
 	server = "TTT";
-	version = "0.8.3.8"
+	version = "0.8.5.2"
 }
 hook.Add("Initialize", "EraYaNVersion", function() print('EraYaN:','Version',erayan.config.version) end)
 function erayan.table_print (tt, indent, done)
@@ -35,6 +35,6 @@ function erayan.table_print (tt, indent, done)
       end
     end
   else
-    Msg(tt .. "\n")
+    Msg(tostring(tt) .. "\n")
   end
 end
