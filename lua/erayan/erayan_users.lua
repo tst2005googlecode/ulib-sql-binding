@@ -49,7 +49,7 @@ function erayan.doCheckUser(ply)
 		query:start()
 		print( 'EraYaN: ','-----------------------Checking User-----------------------')
 	else
-		table.insert(erayan.database.pending, {queryText})
+		table.insert(erayan.database.pending, {queryText; onData=erayan.checkGroupOnData})
 		erayan.CheckStatus()
 		print( 'EraYaN: ','-----------------------Check User Query Pending-----------------------')
 	end
@@ -67,12 +67,11 @@ end
 
 function erayan.checkUserOnData(self, datarow)
 	print( 'EraYaN: ','-----------------------Recieved User Data----------------------- ')
-	print( 'EraYaN: ','DataRow', datarow['Hits'])
 	if self.ply:IsBot() then 
 		print( 'EraYaN: ','-----------------------We dont want bots in our DB----------------------- ')
 		return 0
 	end
-	print( 'EraYaN: ',type(datarow['Hits']),datarow['Hits'])
+	--print( 'EraYaN: ',type(datarow['Hits']),datarow['Hits'])
 	if datarow['Hits']  == "0" then
 		print( 'EraYaN: ','-----------------------Adding user...----------------------- ')
 		erayan.doAddUser(self.ply)

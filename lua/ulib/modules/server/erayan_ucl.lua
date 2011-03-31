@@ -20,6 +20,12 @@ function ucl.saveGroups()
 			local inherit_from = data['inherit_from']
 		end]]--
 			erayan.doCheckGroup(groupname, data['inherit_from'], '', data['can_target'])
+			for key, command in ipairs(data['allow']) do			
+				erayan.doCheckPermission(command, groupname, 'group', 'allow', data['allow'][command])
+			end
+			for key, command in ipairs(data['deny']) do			
+				erayan.doCheckPermission(command, groupname, 'group', 'deny', data['deny'][command])
+			end
 		else
 			print('EraYaN:','-Processing Group Fail-',groupname,data)
 		end

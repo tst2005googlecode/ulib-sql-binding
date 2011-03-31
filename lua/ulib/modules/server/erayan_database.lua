@@ -21,19 +21,25 @@ erayan.queries = {
 	['insert_user'] = "INSERT INTO `ulibuser` "..
 	"(`ulibUserSteamID`, `ulibUserName`, `ulibUserGroupID`, `ulibUserLastVisited`, `ulibUserFirstVisited`, `ulibUserTimesVisited`, `ulibUserLastUsedIP`, `ulibUserFirstUsedIP`, `ulibUserServer`)"..
 	" VALUES ('%s', '%s', 0, NOW(), NOW(), 1, '%s', '%s', '%s');";
-	['select_user'] = "SELECT *, COUNT(*) AS Hits FROM `ulibuser` WHERE ulibUserSteamID = '%s' AND ulibUserServer = '%s' LIMIT 1;";
+	['select_user'] = "SELECT *, COUNT(*) AS Hits FROM `ulibuser` WHERE ulibUserSteamID = '%s' AND `ulibUserServer` = '%s' LIMIT 1;";
 	['update_user'] = "UPDATE `ulibuser` SET `ulibUserName`='%s', `ulibUserLastVisited`=NOW(), `ulibUserTimesVisited`=`ulibUserTimesVisited`+1, `ulibUserLastUsedIP`='%s' WHERE `ulibUserID`=%i;";
 	['update_user_2'] = "UPDATE `ulibuser` SET `ulibUserName`='%s', `ulibUserLastVisited`=NOW(), `ulibUserFrags`=`ulibUserFrags`+%i,`ulibUserDeaths`=`ulibUserDeaths`+%i WHERE `ulibUserSteamID`='%s';";
 	-- Groups
 	['select_group_list'] = "SELECT *  FROM `ulibgroup` WHERE `ulibGroupServer` = '%s' ";
 	['select_group'] = "SELECT *, COUNT(*) AS Hits FROM `ulibgroup` WHERE `ulibGroupName` = '%s' AND `ulibGroupServer` = '%s' LIMIT 1;";
 	['insert_group'] = "INSERT INTO `ulibgroup` (`ulibGroupName`, `ulibGroupInheritFrom`, `ulibGroupServer`, `ulibGroupDisplayName`, `ulibGroupCanTarget`) VALUES ('%s', '%s', '%s', '%s', '%s');";
-	['update_group'] = "UPDATE `dehaantj_ulib_ulx`.`ulibgroup` SET `ulibGroupInheritFrom`='%s', `ulibGroupServer`='%s', `ulibGroupDisplayName`='%s', `ulibGroupCanTarget`='%s' WHERE `ulibGroupID`=%i;";
+	['update_group'] = "UPDATE `ulibgroup` SET `ulibGroupInheritFrom`='%s', `ulibGroupServer`='%s', `ulibGroupDisplayName`='%s', `ulibGroupCanTarget`='%s' WHERE `ulibGroupID`=%i;";
 	-- Permissions
-	['insert_permission'] = "INSERT INTO `ulibpermission` () VALUES ()";
-	['select_permission_user'] = "SELECT * FROM `ulibpermission` WHERE `uclPermissionID` = %i";
-	['delete_permission'] = "DELETE FROM `ulibpermission` WHERE `uclPermissionID` = %i";
-	['delete_permission_user'] = "DELETE FROM `ulibpermission` WHERE `uclPermissionUserID` = '%s'";
+	['insert_permission'] = "INSERT INTO `ulibpermission`"..
+	" (`ulibPermissionCommand`, `ulibPermissionUserID`, `ulibPermissionKind`, `ulibPermissionServer`, `ulibPermissionTag`, `ulibPermissionUserKind`)"..
+	" VALUES ('%s', %s, '%s', '%s', '%s', '%s');";
+	['update_permission'] = "UPDATE `dehaantj_ulib_ulx`.`ulibpermission` SET `ulibPermissionCommand`='%s', `ulibPermissionUserID`=%s, `ulibPermissionKind`='%s', `ulibPermissionServer`='%s', `ulibPermissionTag`='%s', `ulibPermissionUserKind`='%s' WHERE `ulibPermissionID`=%i;";
+	['select_permission_user'] = "SELECT * FROM `ulibpermission` WHERE `ulibPermissionUserID` = %s AND `ulibPermissionServer` = '%s' AND `ulibPermissionUserKind` = '%s'";
+	['select_permission_group_id'] = "(SELECT `ulibGroupID` FROM `ulibgroup` WHERE `ulibGroupName` = '%s' AND `ulibGroupServer` = '%s')";
+	['select_permission_user_id'] = "(SELECT `ulibUserID` FROM `ulibuser` WHERE `ulibUserSteamID` = '%s' AND `ulibUserServer` = '%s')";
+	['delete_permission'] = "DELETE FROM `ulibpermission` WHERE `ulibPermissionID` = %i AND `ulibUserServer` = '%s'";
+	['delete_permission_user'] = "DELETE FROM `ulibpermission` WHERE `ulibPermissionUserID` = '%s'";
+	
 }
 
 local function blankCallback() end
@@ -83,6 +89,8 @@ include('./erayan/erayan_users.lua');
 
 include('./erayan/erayan_groups.lua');
 
+include('./erayan/erayan_permissions.lua');
+
 function erayan.pendingOnFailure(self, err)
 	notifyerror( 'Pending SQL could\'t execute',err )
 end
@@ -104,19 +112,30 @@ function erayan.databaseOnConnected(self)
 		query 			= self:query(info[1]);
 		query.onFailure	= erayan.pendingOnFailure;
 		query.onSuccess	= erayan.pendingOnSuccess;
+		query.onData = info['onData']
 		query:start();
 	end
 	self.pending = {};
 
 end
 
---concommands
-	
+-- Console Commands
 
 function erayan.fEraYaNStatus( player, command, arguments )
-    print('EraYaN: Status', erayan.database:status())
+local state = erayan.database:status()
+if state == 0 then
+	print('EraYaN Status: ', 'Connected')
+elseif state == 1 then
+	print('EraYaN Status: ', 'Connecting')
+elseif state == 2 then
+	print('EraYaN Status: ', 'Not Connected')
+elseif state == 3 then
+	print('EraYaN Status: ', 'Suffered an Error')
+else
+	print('EraYaN Status: ', tostring(erayan.database:status()))
 end
- 
+    
+end 
 concommand.Add( "erayan_status", erayan.fEraYaNStatus )
 
 -- Hooks
@@ -133,14 +152,14 @@ hook.Add( "PlayerDisconnected", "EraYaNPlayerDisconnected", erayan.doUpdateUser2
 end
 
 -- Checks the status of the database and recovers if there are errors
--- WARNING: This function erayan.is blocking. It is auto-called every 5 minutes.
+-- WARNING: This function is blocking. It is auto-called every 5 minutes.
 function erayan.CheckStatus()
 	if (not erayan.database or erayan.database.automaticretry) then return end
 	local status = erayan.database:status()
 	if (status == STATUS_WORKING or status == STATUS_READY) then
 		return
 	elseif (status == STATUS_ERROR) then
-		erayan.notifyerror("The database object has suffered an inernal error and will be recreated.")
+		erayan.notifyerror("The database object has suffered an internal error and will be recreated.")
 		local pending = erayan.database.pending
 		erayan.doConnect()
 		erayan.database.pending = pending
