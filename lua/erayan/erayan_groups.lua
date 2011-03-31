@@ -7,24 +7,27 @@ function erayan.doAddGroup(name, inherit_from, displayname, can_target)
 		notifyerror( 'SQL Connection not open.' )
 		erayan.CheckStatus()		
 	end
-	if inherit_from == nil then
+	if not inherit_from then
 		inherit_from = ''
 	end
-	if can_target == nil then
+	if not displayname then
+		displayname = ''
+	end
+	if not can_target then
 		can_target = ''
 	end
 		local queryText = erayan.queries['insert_group']:format(name, inherit_from, erayan.config.server, erayan.database:escape(displayname), erayan.database:escape(can_target))
-		print( 'EraYaN: ','Query',queryText)
+		erayan.pmsg('Query',false,queryText)
 	local query = erayan.database:query(queryText)
 	if query and erayan.database:status() == 0 then
 		query.onFailure = erayan.addGroupOnFailure
 		query.onSuccess = erayan.addGroupOnSuccess
 		query:start()
-		print( 'EraYaN: ','-----------------------Adding Group-----------------------')
+		erayan.pmsg('Adding Group',true)
 	else
-		table.insert(erayan.database.pending, {queryText})
+		table.insert(erayan.database.pending, {queryText; queryObj=query})
 		erayan.CheckStatus()
-		print( 'EraYaN: ','-----------------------Add Group Query Pending-----------------------')
+		erayan.pmsg('Add Group Query Pending',true)
 	end
 
 end
@@ -34,7 +37,7 @@ function erayan.addGroupOnFailure(self, err)
 end
 
 function erayan.addGroupOnSuccess()
-	print( 'EraYaN: ', '-----------------------Added Group----------------------- ')
+	erayan.pmsg( 'Added Group',true)
 end
 
 function erayan.doCheckGroup(name, inherit_from, displayname, can_target)
@@ -49,7 +52,7 @@ function erayan.doCheckGroup(name, inherit_from, displayname, can_target)
 		can_target = ''
 	end
 		local queryText = erayan.queries['select_group']:format(name,erayan.config.server)
-		print( 'EraYaN: ','Query',queryText)
+		erayan.pmsg('Query',false,queryText)
 	local query = erayan.database:query(queryText)
 	if query and erayan.database:status() == 0 then
 		query.onFailure = erayan.checkGroupOnFailure
@@ -60,12 +63,12 @@ function erayan.doCheckGroup(name, inherit_from, displayname, can_target)
 		query.displayname = displayname
 		query.can_target = can_target
 		query:start()
-		print( 'EraYaN: ','-----------------------Checking Group-----------------------')
-		--print( 'EraYaN: ',query.name,query.inherit_from,query.displayname,query.can_target)
+		erayan.pmsg('Checking Group',true)
+		--erayan.pmsg(query.name,query.inherit_from,query.displayname,query.can_target)
 	else
-		table.insert(erayan.database.pending, {queryText; onData=erayan.checkGroupOnData})
+		table.insert(erayan.database.pending, {queryText; queryObj=query; onData=erayan.checkGroupOnData})
 		erayan.CheckStatus()
-		print( 'EraYaN: ','-----------------------Check Group Query Pending-----------------------')
+		erayan.pmsg('Check Group Query Pending',true)
 	end
 
 end
@@ -77,16 +80,16 @@ function erayan.checkGroupOnFailure(self, err)
 end
 
 function erayan.checkGroupOnSuccess()
-	print( 'EraYaN: ', '-----------------------Checked Group----------------------- ')
+	erayan.pmsg( 'Checked Group',true)
 end
 
 function erayan.checkGroupOnData(self, datarow)
-	print( 'EraYaN: ','-----------------------Recieved Group Data----------------------- ')
+	erayan.pmsg('Recieved Group Data',true)
 	if datarow['Hits']  == "0" then
-		print( 'EraYaN: ','-----------------------Adding group...----------------------- ')
+		erayan.pmsg('Adding group...',true)
 		erayan.doAddGroup( self.name, self.inherit_from, self.displayname, self.can_target )
 		else
-		print( 'EraYaN: ','-----------------------Updating group...----------------------- ')
+		erayan.pmsg('Updating group...',true)
 		erayan.doUpdateGroup( datarow['ulibGroupID'], self.inherit_from, self.displayname, self.can_target )
 	end
 end
@@ -97,17 +100,17 @@ function erayan.doUpdateGroup(id, inherit_from, displayname, can_target)
 		erayan.CheckStatus()		
 	end
 		local queryText = erayan.queries['update_group']:format(inherit_from, erayan.config.server, erayan.database:escape(displayname), erayan.database:escape(can_target), id)
-		print( 'EraYaN: ','Query',queryText)
+		erayan.pmsg('Query',false,queryText)
 	local query = erayan.database:query(queryText)
 	if query and erayan.database:status() == 0 then
 		query.onFailure = erayan.updateGroupOnFailure
 		query.onSuccess = erayan.updateGroupOnSuccess
 		query:start()
-		print( 'EraYaN: ','-----------------------Updating Group-----------------------')
+		erayan.pmsg('Updating Group',true)
 	else
-		table.insert(erayan.database.pending, {queryText})
+		table.insert(erayan.database.pending, {queryText; queryObj=query})
 		erayan.CheckStatus()
-		print( 'EraYaN: ','-----------------------Update Group Query Pending-----------------------')
+		erayan.pmsg('Update Group Query Pending',true)
 	end
 end
 
@@ -116,5 +119,5 @@ function erayan.updateGroupOnFailure(self, err)
 end
 
 function erayan.updateGroupOnSuccess()
-	print( 'EraYaN: ', '-----------------------Updated Group----------------------- ')
+	erayan.pmsg( 'Updated Group',true)
 end
