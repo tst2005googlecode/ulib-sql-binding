@@ -3,15 +3,15 @@ if not erayan then
 end
 
 function erayan.doAddUser(ply)
-	if not erayan.database.state == 0 then
+	if not erayan.database:status() == 0 then
 		notifyerror( 'SQL Connection not open.' )
-		return false
-	else
+		erayan.CheckStatus()		
+	end
 	if ply:IsBot() then return end
 		local queryText = erayan.queries['insert_user']:format(ply:SteamID(),erayan.database:escape(ply:GetName()),getIP(ply),getIP(ply),erayan.config.server)
 		print( 'EraYaN: ','Query',queryText)
 	local query = erayan.database:query(queryText)
-	if (query) then
+	if query and erayan.database:status() == 0 then
 		query.onFailure = erayan.addUserOnFailure
 		query.onSuccess = erayan.addUserOnSuccess
 		query:start()
@@ -22,7 +22,6 @@ function erayan.doAddUser(ply)
 		print( 'EraYaN: ','-----------------------Add User Query Pending-----------------------')
 	end
 
-	end
 end
 
 function erayan.addUserOnFailure(self, err)
@@ -34,15 +33,15 @@ function erayan.addUserOnSuccess(query)
 end
 
 function erayan.doCheckUser(ply)
-	if not erayan.database.state == 0 then
+	if not erayan.database:status() == 0 then
 		notifyerror( 'SQL Connection not open.' )
-		return false
-	else
+		erayan.CheckStatus()		
+	end
 	if ply:IsBot() then return end
 		local queryText = erayan.queries['select_user']:format(ply:SteamID(),erayan.config.server)
 		print( 'EraYaN: ','Query',queryText)
 	local query = erayan.database:query(queryText)
-	if (query) then
+	if query and erayan.database:status() == 0 then
 		query.onFailure = erayan.checkUserOnFailure
 		query.onSuccess = erayan.checkUserOnSuccess
 		query.onData = erayan.checkUserOnData
@@ -55,7 +54,6 @@ function erayan.doCheckUser(ply)
 		print( 'EraYaN: ','-----------------------Check User Query Pending-----------------------')
 	end
 
-	end
 end
 
 function erayan.checkUserOnFailure(self, err)
@@ -85,15 +83,15 @@ function erayan.checkUserOnData(self, datarow)
 end
 
 function erayan.doUpdateUser(ply, id)
-	if not erayan.database.state == 0 then
+	if not erayan.database:status() == 0 then
 		notifyerror( 'SQL Connection not open.' )
-		return false
-	else
+		erayan.CheckStatus()		
+	end
 	if ply:IsBot() then return end
 		local queryText = erayan.queries['update_user']:format(erayan.database:escape(ply:GetName()), getIP(ply), id)
 		print( 'EraYaN: ','Query',queryText)
 	local query = erayan.database:query(queryText)
-	if (query) then
+	if query and erayan.database:status() == 0 then
 		query.onFailure = erayan.updateUserOnFailure
 		query.onSuccess = erayan.updateUserOnSuccess
 		query:start()
@@ -104,7 +102,6 @@ function erayan.doUpdateUser(ply, id)
 		print( 'EraYaN: ','-----------------------Update User Query Pending-----------------------')
 	end
 
-	end
 end
 
 function erayan.updateUserOnFailure(self, err)
@@ -116,15 +113,15 @@ function erayan.updateUserOnSuccess()
 end
 
 function erayan.doUpdateUser2(ply)
-	if not erayan.database.state == 0 then
+	if not erayan.database:status() == 0 then
 		notifyerror( 'SQL Connection not open.' )
-		return false
-	else
+		erayan.CheckStatus()		
+	end
 	if ply:IsBot() then return end
 		local queryText = erayan.queries['update_user_2']:format(erayan.database:escape(ply:GetName()), ply:Frags(), ply:Deaths(), ply:SteamID())
 		print( 'EraYaN: ','Query',queryText)
 	local query = erayan.database:query(queryText)
-	if (query) then
+	if query and erayan.database:status() == 0 then
 		query.onFailure = erayan.updateUser2OnFailure
 		query.onSuccess = erayan.updateUser2OnSuccess
 		query:start()
@@ -135,7 +132,6 @@ function erayan.doUpdateUser2(ply)
 		print( 'EraYaN: ','-----------------------Update User (2) Query Pending-----------------------')
 	end
 
-	end
 end
 
 function erayan.updateUser2OnFailure(self, err)
