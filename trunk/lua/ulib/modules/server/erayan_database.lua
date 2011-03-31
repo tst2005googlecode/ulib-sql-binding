@@ -55,7 +55,7 @@ function erayan.cleanIP(ip)
 	return string.match(ip, "(%d+%.%d+%.%d+%.%d+)");
 end
 function erayan.getIP(ply)
-	return cleanIP(ply:IPAddress());
+	return erayan.cleanIP(ply:IPAddress());
 end
 
 
