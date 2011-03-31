@@ -2,9 +2,14 @@ local logFile = ulx.convar( "logFile", "1", "", ULib.ACCESS_SUPERADMIN )
 local logDir  = ulx.convar( "logDir", "ulx_logs", "", ULib.ACCESS_SUPERADMIN )
 local next_log
 local curDay
+
+if not erayan then
+	include('./erayan/erayan_init.lua');
+end
+
 function ulx.logString( str, log_to_main )
 	-- database part below here
-	doAddLogItem(str);
+	erayan.doAddLogItem(str);
 	ulx.logStringOld( str, log_to_main )
 	
 end

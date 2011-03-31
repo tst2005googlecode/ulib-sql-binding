@@ -1,3 +1,7 @@
+if not erayan then
+	include('./erayan/erayan_init.lua');
+end
+
 -- slap/kick hook function
 function commandHook(ply, commandName, translated_args)
     -- slap action
@@ -45,6 +49,6 @@ hook.Add("ULibPostTranslatedCommand", "EraYaNCommandHook", commandHook)
 -- player join (add to mysql database)
 function playerJoinDB(ply)
 	print( 'EraYaN: ', '---------------------A Player Joined---------------------' )
-	doCheckUser(ply)
+	erayan.doCheckUser(ply)
 end
 hook.Add("UCLAuthed", "EraYaNPlayerAuthedHook", playerJoinDB)

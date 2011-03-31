@@ -1,69 +1,73 @@
-function doAddUser(ply)
-	if not database.state == 0 then
+if not erayan then
+	include('./erayan/erayan_init.lua');
+end
+
+function erayan.doAddUser(ply)
+	if not erayan.database.state == 0 then
 		notifyerror( 'SQL Connection not open.' )
 		return false
 	else
 	if ply:IsBot() then return end
-		local queryText = queries['insert_user']:format(ply:SteamID(),ply:GetName(),getIP(ply),getIP(ply),erayan_config.server)
+		local queryText = erayan.queries['insert_user']:format(ply:SteamID(),erayan.database:escape(ply:GetName()),getIP(ply),getIP(ply),erayan.config.server)
 		print( 'EraYaN: ','Query',queryText)
-	local query = database:query(queryText)
+	local query = erayan.database:query(queryText)
 	if (query) then
-		query.onFailure = addUserOnFailure
-		query.onSuccess = addUserOnSuccess
+		query.onFailure = erayan.addUserOnFailure
+		query.onSuccess = erayan.addUserOnSuccess
 		query:start()
 		print( 'EraYaN: ','-----------------------Adding User-----------------------')
 	else
-		table.insert(database.pending, {queryText})
-		CheckStatus()
+		table.insert(erayan.database.pending, {queryText})
+		erayan.CheckStatus()
 		print( 'EraYaN: ','-----------------------Add User Query Pending-----------------------')
 	end
 
 	end
 end
 
-function addUserOnFailure(self, err)
-	notifyerror( 'SQL Add User Fail ',err )
+function erayan.addUserOnFailure(self, err)
+	erayan.notifyerror( 'SQL Add User Fail ',err )
 end
 
-function addUserOnSuccess(query)
+function erayan.addUserOnSuccess(query)
 	print( 'EraYaN: ', '-----------------------Added User----------------------- ')
 end
 
-function doCheckUser(ply)
-	if not database.state == 0 then
+function erayan.doCheckUser(ply)
+	if not erayan.database.state == 0 then
 		notifyerror( 'SQL Connection not open.' )
 		return false
 	else
 	if ply:IsBot() then return end
-		local queryText = queries['select_user']:format(ply:SteamID(),erayan_config.server)
+		local queryText = erayan.queries['select_user']:format(ply:SteamID(),erayan.config.server)
 		print( 'EraYaN: ','Query',queryText)
-	local query = database:query(queryText)
+	local query = erayan.database:query(queryText)
 	if (query) then
-		query.onFailure = checkUserOnFailure
-		query.onSuccess = checkUserOnSuccess
-		query.onData = checkUserOnData
+		query.onFailure = erayan.checkUserOnFailure
+		query.onSuccess = erayan.checkUserOnSuccess
+		query.onData = erayan.checkUserOnData
 		query.ply = ply
 		query:start()
 		print( 'EraYaN: ','-----------------------Checking User-----------------------')
 	else
-		table.insert(database.pending, {queryText})
-		CheckStatus()
+		table.insert(erayan.database.pending, {queryText})
+		erayan.CheckStatus()
 		print( 'EraYaN: ','-----------------------Check User Query Pending-----------------------')
 	end
 
 	end
 end
 
-function checkUserOnFailure(self, err)
-	notifyerror( 'SQL LogAdd fail ',err )
+function erayan.checkUserOnFailure(self, err)
+	erayan.notifyerror( 'SQL LogAdd fail ',err )
 end
 
-function checkUserOnSuccess(query)
+function erayan.checkUserOnSuccess(query)
 	print( 'EraYaN: ', '-----------------------Checked User----------------------- ')
 	--PrintTable(query:getData())
 end
 
-function checkUserOnData(self, datarow)
+function erayan.checkUserOnData(self, datarow)
 	print( 'EraYaN: ','-----------------------Recieved User Data----------------------- ')
 	print( 'EraYaN: ','DataRow', datarow['Hits'])
 	if self.ply:IsBot() then 
@@ -72,71 +76,72 @@ function checkUserOnData(self, datarow)
 	end
 	print( 'EraYaN: ',type(datarow['Hits']),datarow['Hits'])
 	if datarow['Hits']  == "0" then
-    print( 'EraYaN: ','-----------------------Adding user...----------------------- ')
-		doAddUser(self.ply)
+		print( 'EraYaN: ','-----------------------Adding user...----------------------- ')
+		erayan.doAddUser(self.ply)
 		else
-		doUpdateUser(self.ply,  datarow['ulibUserID'])
+		print( 'EraYaN: ','-----------------------Updating user...----------------------- ')
+		erayan.doUpdateUser(self.ply,  datarow['ulibUserID'])
 	end
 end
 
-function doUpdateUser(ply, id)
-	if not database.state == 0 then
+function erayan.doUpdateUser(ply, id)
+	if not erayan.database.state == 0 then
 		notifyerror( 'SQL Connection not open.' )
 		return false
 	else
 	if ply:IsBot() then return end
-		local queryText = queries['update_user']:format(ply:GetName(), getIP(ply), id)
+		local queryText = erayan.queries['update_user']:format(erayan.database:escape(ply:GetName()), getIP(ply), id)
 		print( 'EraYaN: ','Query',queryText)
-	local query = database:query(queryText)
+	local query = erayan.database:query(queryText)
 	if (query) then
-		query.onFailure = updateUserOnFailure
-		query.onSuccess = updateUserOnSuccess
+		query.onFailure = erayan.updateUserOnFailure
+		query.onSuccess = erayan.updateUserOnSuccess
 		query:start()
 		print( 'EraYaN: ','-----------------------Updating User-----------------------')
 	else
-		table.insert(database.pending, {queryText})
-		CheckStatus()
+		table.insert(erayan.database.pending, {queryText})
+		erayan.CheckStatus()
 		print( 'EraYaN: ','-----------------------Update User Query Pending-----------------------')
 	end
 
 	end
 end
 
-function updateUserOnFailure(self, err)
-	notifyerror( 'SQL Update User Fail ',err )
+function erayan.updateUserOnFailure(self, err)
+	erayan.notifyerror( 'SQL Update User Fail ',err )
 end
 
-function updateUserOnSuccess()
+function erayan.updateUserOnSuccess()
 	print( 'EraYaN: ', '-----------------------Updated User----------------------- ')
 end
 
-function doUpdateUser2(ply)
-	if not database.state == 0 then
+function erayan.doUpdateUser2(ply)
+	if not erayan.database.state == 0 then
 		notifyerror( 'SQL Connection not open.' )
 		return false
 	else
 	if ply:IsBot() then return end
-		local queryText = queries['update_user_2']:format(ply:GetName(), ply:Frags(), ply:Deaths(), ply:SteamID())
+		local queryText = erayan.queries['update_user_2']:format(erayan.database:escape(ply:GetName()), ply:Frags(), ply:Deaths(), ply:SteamID())
 		print( 'EraYaN: ','Query',queryText)
-	local query = database:query(queryText)
+	local query = erayan.database:query(queryText)
 	if (query) then
-		query.onFailure = updateUser2OnFailure
-		query.onSuccess = updateUser2OnSuccess
+		query.onFailure = erayan.updateUser2OnFailure
+		query.onSuccess = erayan.updateUser2OnSuccess
 		query:start()
 		print( 'EraYaN: ','-----------------------Updating User (2)-----------------------')
 	else
-		table.insert(database.pending, {queryText})
-		CheckStatus()
+		table.insert(erayan.database.pending, {queryText})
+		erayan.CheckStatus()
 		print( 'EraYaN: ','-----------------------Update User (2) Query Pending-----------------------')
 	end
 
 	end
 end
 
-function updateUser2OnFailure(self, err)
-	notifyerror( 'SQL Update User Fail ',err )
+function erayan.updateUser2OnFailure(self, err)
+	erayan.notifyerror( 'SQL Update User Fail ',err )
 end
 
-function updateUser2OnSuccess()
+function erayan.updateUser2OnSuccess()
 	print( 'EraYaN: ', '-----------------------Updated User (2)----------------------- ')
 end
