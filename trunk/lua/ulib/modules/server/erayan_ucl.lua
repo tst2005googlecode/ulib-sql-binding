@@ -1,18 +1,45 @@
+if not erayan then
+	include('./erayan/erayan_init.lua');
+end
+
+local ucl = ULib.ucl -- Make it easier for us to refer to
+
 -- Save what we've got with ucl.groups so far!
-function ucl.saveGroupsOld()
+function ucl.saveGroups()
 	for _, groupInfo in pairs( ucl.groups ) do
 		table.sort( groupInfo.allow )
 	end
-
-	file.Write( ULib.UCL_GROUPS, ULib.makeKeyValues( ucl.groups ) )
+	ucl.saveGroupsOld()
+	for groupname, data in pairs(ucl.groups) do
+		print('EraYaN:','-Processing Group-',groupname)
+		if type(data) == "table" then
+		--valid
+		--[[if not data['inherit_from'] then
+			local inherit_from = ''
+		else
+			local inherit_from = data['inherit_from']
+		end]]--
+			erayan.doCheckGroup(groupname, data['inherit_from'], '', data['can_target'])
+		else
+			print('EraYaN:','-Processing Group Fail-',groupname,data)
+		end
+	end
+	--erayan.table_print(ucl.groups,0,false)
 end
 
-function ucl.saveUsersOld()
+function ucl.saveUsers()
 	for _, userInfo in pairs( ucl.users ) do
 		table.sort( userInfo.allow )
 		table.sort( userInfo.deny )
 	end
+	ucl.saveUsersOld()
+end
 
+function ucl.saveGroupsOld()
+	file.Write( ULib.UCL_GROUPS, ULib.makeKeyValues( ucl.groups ) )
+end
+
+function ucl.saveUsersOld()
 	file.Write( ULib.UCL_USERS, ULib.makeKeyValues( ucl.users ) )
 end
 
