@@ -8,7 +8,7 @@ function erayan.doAddLogItem(str)
 		erayan.CheckStatus()		
 	end
 		local queryText = erayan.queries['insert_log']:format(os.date("%Y-%m-%d %X"),erayan.database:escape(str),erayan.config.server)
-		erayan.pmsg('Query',false,queryText)
+		erayan.dmsg('Query',false,queryText)
 	local query = erayan.database:query(queryText)
 	if query and erayan.database:status() == 0 then
 		query.onFailure = erayan.addLogOnFailure

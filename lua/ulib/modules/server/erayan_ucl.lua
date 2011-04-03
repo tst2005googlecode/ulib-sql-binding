@@ -4,53 +4,37 @@ end
 
 local ucl = ULib.ucl -- Make it easier for us to refer to
 
+function erayan.saveGroupsTwo(groupname, data, pkind)
+	if data[pkind] then			
+		for key, command in pairs(data[pkind]) do
+			local tag = ''
+			if type(key) == 'string' then
+			tag = command
+			command = key					
+			end
+			erayan.doCheckPermission(command, groupname, 'group', pkind, tag)
+			--erayan.imsg(data[pkind][command],false,tostring(data[pkind][command]),type(data[pkind][command]),tag,command,key,type(key))			
+		end
+	end
+end
+
+
 -- Save what we've got with ucl.groups so far!
 function ucl.saveGroups()
 	for _, groupInfo in pairs( ucl.groups ) do
 		table.sort( groupInfo.allow )
 	end
-	local permissions = 0
-	local groups = 0
 	ucl.saveGroupsOld()
 	for groupname, data in pairs(ucl.groups) do
 		print('EraYaN:','-Processing Group-',groupname)
 		if type(data) == "table" then
-		--valid
-		--[[if not data['inherit_from'] then
-			local inherit_from = ''
-		else
-			local inherit_from = data['inherit_from']
-		end]]--
 			erayan.doCheckGroup(groupname, data['inherit_from'], '', data['can_target'])
-			groups = groups + 1
-			if data['allow'] then
-				for key, command in pairs(data['allow']) do
-					local tag = ''
-					if type(key) == 'string' then
-					tag = command
-					command = key					
-					end
-					erayan.doCheckPermission(command, groupname, 'group', 'allow', tag)
-					--erayan.imsg(data['allow'][command],false,tostring(data['allow'][command]),type(data['allow'][command]),tag,command,key,type(key))
-					permissions = permissions + 1
-				end
-			end
-			if data['deny'] then
-				for key, command in ipairs(data['deny']) do	
-					local tag = ''
-					if type(key) == 'string' then
-					tag = command
-					command = key					
-					end				
-					erayan.doCheckPermission(command, groupname, 'group', 'deny', tag)
-					permissions = permissions + 1
-				end
-			end
+			erayan.doCheckUserPermissions(groupname, 'group', data)
+			--erayan.saveGroupsTwo(groupname, data)
 		else
 			print('EraYaN:','-Processing Group Fail-',groupname,data)
 		end
 	end
-	erayan.imsg('Saved Groups',false,groups..' groups done.',permissions..' permissions done.')
 	--erayan.table_print(ucl.groups,0,false)
 end
 

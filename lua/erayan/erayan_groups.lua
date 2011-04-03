@@ -17,7 +17,7 @@ function erayan.doAddGroup(name, inherit_from, displayname, can_target)
 		can_target = ''
 	end
 		local queryText = erayan.queries['insert_group']:format(name, inherit_from, erayan.config.server, erayan.database:escape(displayname), erayan.database:escape(can_target))
-		erayan.pmsg('Query',false,queryText)
+		erayan.dmsg('Query',false,queryText)
 	local query = erayan.database:query(queryText)
 	if query and erayan.database:status() == 0 then
 		query.onFailure = erayan.addGroupOnFailure
@@ -52,7 +52,7 @@ function erayan.doCheckGroup(name, inherit_from, displayname, can_target)
 		can_target = ''
 	end
 		local queryText = erayan.queries['select_group']:format(name,erayan.config.server)
-		erayan.pmsg('Query',false,queryText)
+		erayan.dmsg('Query',false,queryText)
 	local query = erayan.database:query(queryText)
 	if query and erayan.database:status() == 0 then
 		query.onFailure = erayan.checkGroupOnFailure
@@ -100,7 +100,7 @@ function erayan.doUpdateGroup(id, inherit_from, displayname, can_target)
 		erayan.CheckStatus()		
 	end
 		local queryText = erayan.queries['update_group']:format(inherit_from, erayan.config.server, erayan.database:escape(displayname), erayan.database:escape(can_target), id)
-		erayan.pmsg('Query',false,queryText)
+		erayan.dmsg('Query',false,queryText)
 	local query = erayan.database:query(queryText)
 	if query and erayan.database:status() == 0 then
 		query.onFailure = erayan.updateGroupOnFailure

@@ -9,7 +9,7 @@ function erayan.doAddUser(ply)
 	end
 	if ply:IsBot() then return end
 		local queryText = erayan.queries['insert_user']:format(ply:SteamID(),erayan.database:escape(ply:GetName()),erayan.getIP(ply),erayan.getIP(ply),erayan.config.server)
-		erayan.pmsg('Query',false,queryText)
+		erayan.dmsg('Query',false,queryText)
 	local query = erayan.database:query(queryText)
 	if query and erayan.database:status() == 0 then
 		query.onFailure = erayan.addUserOnFailure
@@ -39,7 +39,7 @@ function erayan.doCheckUser(ply)
 	end
 	if ply:IsBot() then return end
 		local queryText = erayan.queries['select_user']:format(ply:SteamID(),erayan.config.server)
-		erayan.pmsg('Query',false,queryText)
+		erayan.dmsg('Query',false,queryText)
 	local query = erayan.database:query(queryText)
 	if query and erayan.database:status() == 0 then
 		query.onFailure = erayan.checkUserOnFailure
@@ -88,7 +88,7 @@ function erayan.doUpdateUser(ply, id)
 	end
 	if ply:IsBot() then return end
 		local queryText = erayan.queries['update_user']:format(erayan.database:escape(ply:GetName()), erayan.getIP(ply), id)
-		erayan.pmsg('Query',false,queryText)
+		erayan.dmsg('Query',false,queryText)
 	local query = erayan.database:query(queryText)
 	if query and erayan.database:status() == 0 then
 		query.onFailure = erayan.updateUserOnFailure
@@ -118,7 +118,7 @@ function erayan.doUpdateUser2(ply)
 	end
 	if ply:IsBot() then return end
 		local queryText = erayan.queries['update_user_2']:format(erayan.database:escape(ply:GetName()), ply:Frags(), ply:Deaths(), ply:SteamID())
-		erayan.pmsg('Query',false,queryText)
+		erayan.dmsg('Query',false,queryText)
 	local query = erayan.database:query(queryText)
 	if query and erayan.database:status() == 0 then
 		query.onFailure = erayan.updateUser2OnFailure
