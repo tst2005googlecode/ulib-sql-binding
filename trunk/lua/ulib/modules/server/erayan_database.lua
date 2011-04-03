@@ -35,10 +35,11 @@ erayan.queries = {
 	" VALUES ('%s', %s, '%s', '%s', '%s', '%s');";
 	['update_permission'] = "UPDATE `dehaantj_ulib_ulx`.`ulibpermission` SET `ulibPermissionCommand`='%s', `ulibPermissionUserID`=%s, `ulibPermissionKind`='%s', `ulibPermissionServer`='%s', `ulibPermissionTag`='%s', `ulibPermissionUserKind`='%s' WHERE `ulibPermissionID`=%i;";
 	['select_permission'] = "SELECT *, COUNT(*) AS Hits FROM `ulibpermission` WHERE `ulibPermissionUserID` = %s AND `ulibPermissionCommand` = '%s' AND `ulibPermissionServer` = '%s' AND `ulibPermissionUserKind` = '%s'";
+	['select_permission_count'] = "SELECT `ulibPermissionKind`, COUNT(ulibPermissionID) AS Hits FROM `dehaantj_ulib_ulx`.`ulibpermission` WHERE `ulibPermissionUserID` = %s AND `ulibPermissionServer` = '%s' AND `ulibPermissionUserKind` = '%s';";
 	['select_permission_group_id'] = "(SELECT `ulibGroupID` FROM `ulibgroup` WHERE `ulibGroupName` = '%s' AND `ulibGroupServer` = '%s')";
 	['select_permission_user_id'] = "(SELECT `ulibUserID` FROM `ulibuser` WHERE `ulibUserSteamID` = '%s' AND `ulibUserServer` = '%s')";
-	['delete_permission'] = "DELETE FROM `ulibpermission` WHERE `ulibPermissionID` = %i AND `ulibUserServer` = '%s'";
-	['delete_permission_user'] = "DELETE FROM `ulibpermission` WHERE `ulibPermissionUserID` = '%s'";
+	['delete_permission'] = "DELETE FROM `ulibpermission` WHERE `ulibPermissionID` = %i AND `ulibPermissionServer` = '%s'";
+	['delete_permission_user'] = "DELETE FROM `ulibpermission` WHERE `ulibPermissionUserID` = %s AND `ulibPermissionServer` = '%s' AND `ulibPermissionUserKind` = '%s' AND `ulibPermissionKind` = '%s'";
 	
 }
 
@@ -109,11 +110,14 @@ function erayan.databaseOnConnected(self)
 	erayan.pmsg( #self.pending, false,'pending queries to do.')
 	local query;
 	for _, info in pairs(self.pending) do
-		--[[query 			= self:query(info[1]);
-		query.onFailure	= erayan.pendingOnFailure;
-		query.onSuccess	= erayan.pendingOnSuccess;
-		query.onData = info['onData'] ]]--
-		query = info['queryObj']
+		
+		if info['queryObj'] != nil then
+			query = info['queryObj']
+		else
+			query 			= self:query(info[1]);
+			query.onFailure	= erayan.pendingOnFailure;
+			query.onSuccess	= erayan.pendingOnSuccess;			
+		end
 		query:start();
 		local extra = ''
 		if type(info['onData']) == 'function' then
@@ -129,17 +133,19 @@ end
 
 function erayan.fEraYaNStatus( player, command, arguments )
 local state = erayan.database:status()
+local verbos = erayan.config.verbosity 
 if state == 0 then
-	print('EraYaN Status: ', 'Connected')
+	print('EraYaN Status: ', 'Database Connection Status: Connected')
 elseif state == 1 then
-	print('EraYaN Status: ', 'Connecting')
+	print('EraYaN Status: ', 'Database Connection Status: Connecting')
 elseif state == 2 then
-	print('EraYaN Status: ', 'Not Connected')
+	print('EraYaN Status: ', 'Database Connection Status: Not Connected')
 elseif state == 3 then
-	print('EraYaN Status: ', 'Suffered an Error')
+	print('EraYaN Status: ', 'Database Connection Status: Suffered an Error')
 else
 	print('EraYaN Status: ', tostring(erayan.database:status()))
 end
+print('EraYaN Status: ', 'Verbosity: '.. verbos)
     
 end 
 concommand.Add( "erayan_status", erayan.fEraYaNStatus )

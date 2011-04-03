@@ -3,6 +3,7 @@ require("mysqloo")
 if not erayan then
 	erayan = {}
 end
+CreateConVar( "erayan_verbosity", "2", { FCVAR_REPLICATED, FCVAR_ARCHIVE } )
 
 erayan.config = {
 	hostname = "erayan.eu";
@@ -13,8 +14,9 @@ erayan.config = {
 	portnumb = 3306;
 	server = "TTT";
 	version = "0.9.1.0";
-	silent = true
+	verbosity = GetConVar("erayan_verbosity"):GetInt()
 }
+
 hook.Add("Initialize", "EraYaNVersion", function() erayan.imsg('Version: '..erayan.config.version, false) end)
 function erayan.table_print (tt, indent, done)
   done = done or {}
@@ -41,7 +43,16 @@ function erayan.table_print (tt, indent, done)
 end
 
 function erayan.pmsg(str, dashes, ...)
-	if erayan.config.silent then return end
+	if not (erayan.config.verbosity > 0) then return end
+	if dashes then
+		print( 'EraYaN: ', '------------------'..str..'------------------' )
+	else
+		print( 'EraYaN: ', str, ...)
+	end
+end
+
+function erayan.dmsg(str, dashes, ...)
+	if not (erayan.config.verbosity > 1) then return end
 	if dashes then
 		print( 'EraYaN: ', '------------------'..str..'------------------' )
 	else

@@ -21,7 +21,7 @@ function erayan.doAddPermission(command, uid, ukind, kind, tag)
 			return false
 		end
 		local queryText = erayan.queries['insert_permission']:format(command, subQueryText, kind, erayan.config.server, tag, ukind)
-		erayan.pmsg('Query',false,queryText)
+		erayan.dmsg('Query',false,queryText)
 	local query = erayan.database:query(queryText)
 	if query and erayan.database:status() == 0 then
 		query.onFailure = erayan.addPermissionOnFailure
@@ -63,7 +63,7 @@ function erayan.doCheckPermission(command, uid, ukind, kind, tag)
 		return false
 	end
 		local queryText = erayan.queries['select_permission']:format(subQueryText, command, erayan.config.server, ukind)
-		erayan.pmsg('Query',false,queryText)
+		erayan.dmsg('Query',false,queryText)
 	local query = erayan.database:query(queryText)
 	if query and erayan.database:status() == 0 then
 		query.onFailure = erayan.checkPermissionOnFailure
@@ -99,8 +99,9 @@ function erayan.checkPermissionOnData(self, datarow)
 		erayan.pmsg('Adding permission...',true)
 		erayan.doAddPermission(self.command, self.uid, self.ukind, self.kind, self.tag)
 		else
-		erayan.pmsg('Updating permission...',true)
+		
 		if not datarow['ulibPermissionTag'] == self.tag or not datarow['ulibPermissionKind'] == self.kind then
+			erayan.pmsg('Updating permission...',true)
 			erayan.doUpdatePermission( self.command, self.uid, self.ukind, self.kind, self.tag, datarow['ulibPermissionID'])
 		end
 	end
@@ -119,13 +120,13 @@ function erayan.doUpdatePermission(command, uid, ukind, kind, tag, pid)
 	end
 		local subQueryText = ''
 		if ukind == 'group' or ukind == 'user' then
-			subQueryText = erayan.queries['select_permission_'..ukind..'_id']:format(uid,erayan.config.server)	
+			subQueryText = erayan.queries['select_permission_'..ukind..'_id']:format(uid,erayan.config.server)					
 		else
 			erayan.pmsg('ID Kind Argument Error')
 			return false
 		end
 		local queryText = erayan.queries['update_permission']:format(command, subQueryText, kind, erayan.config.server, tag, ukind, pid)
-		erayan.pmsg('Query',false,queryText)
+		erayan.dmsg('Query',false,queryText)
 	local query = erayan.database:query(queryText)
 	if query and erayan.database:status() == 0 then
 		query.onFailure = erayan.updatePermissionOnFailure
@@ -145,4 +146,111 @@ end
 
 function erayan.updatePermissionOnSuccess()
 	erayan.pmsg( 'Updated Permission',true)
+end
+
+function erayan.doRemoveUserPermissions(uid, ukind, data, pkind)
+	if not erayan.database:status() == 0 then
+		notifyerror( 'SQL Connection not open.' )
+		erayan.CheckStatus()		
+	end
+	if tag == nil then
+		tag = ''
+	end
+	if kind == nil then
+		kind = 'allow'
+	end
+		local subQueryText = ''
+		if ukind == 'group' or ukind == 'user' then
+			subQueryText = erayan.queries['select_permission_'..ukind..'_id']:format(uid,erayan.config.server)	
+		else
+			erayan.pmsg('ID Kind Argument Error')
+			return false
+		end
+		local queryText = erayan.queries['delete_permission_user']:format(subQueryText, erayan.config.server, ukind, pkind)
+		erayan.dmsg('Query',false,queryText)
+	local query = erayan.database:query(queryText)
+	if query and erayan.database:status() == 0 then
+		query.onFailure = erayan.removeUserPermissionsOnFailure
+		query.onSuccess = erayan.removeUserPermissionsOnSuccess
+		query.uid = uid
+		query.ukind = ukind
+		query.data = data
+		query.pkind = pkind
+		query:start()
+		erayan.pmsg('Removing User Permissions',true)
+	else
+		table.insert(erayan.database.pending, {queryText; queryObj=query})
+		erayan.CheckStatus()
+		erayan.pmsg('Remove User Permissions Query Pending',true)
+	end
+end
+
+function erayan.removeUserPermissionsOnFailure(self, err)
+	notifyerror( 'SQL Remove User Permissions Fail ', err )
+end
+
+function erayan.removeUserPermissionsOnSuccess(self)
+	erayan.pmsg( 'Removed User/Group Permissions ('..self.pkind..')',true)
+	erayan.saveGroupsTwo(self.uid, self.data, self.pkind)
+end
+
+function erayan.doCheckUserPermissions(uid, ukind, data)
+	if not erayan.database:status() == 0 then
+		notifyerror( 'SQL Connection not open.' )
+		erayan.CheckStatus()		
+	end
+	if tag == nil then
+		tag = ''
+	end
+	if kind == nil then
+		kind = 'allow'
+	end
+		local subQueryText = ''
+		
+		if ukind == 'group' or ukind == 'user' then
+			subQueryText = erayan.queries['select_permission_'..ukind..'_id']:format(uid,erayan.config.server)				
+		else
+			erayan.pmsg('ID Kind Argument Error')
+			return false
+		end
+		local queryText = erayan.queries['select_permission_count']:format(subQueryText, erayan.config.server, ukind)
+		erayan.dmsg('Query',false,queryText)
+	local query = erayan.database:query(queryText)
+	if query and erayan.database:status() == 0 then
+		query.onFailure = erayan.checkUserPermissionsOnFailure
+		query.onSuccess = erayan.checkUserPermissionsOnSuccess
+		query.onData	= erayan.checkUserPermissionsOnData
+		query.uid = uid
+		query.ukind = ukind
+		query.data = data
+		query:start()
+		erayan.pmsg('Checking User/Group Permissions',true)
+	else
+		table.insert(erayan.database.pending, {queryText; queryObj=query})
+		erayan.CheckStatus()
+		erayan.pmsg('Check User/Group Permissions Query Pending',true)
+	end
+end
+
+function erayan.checkUserPermissionsOnFailure(self, err)
+	notifyerror( 'SQL Check User/Group Permissions Fail ', err )
+end
+
+function erayan.checkUserPermissionsOnSuccess()
+	erayan.pmsg( 'Checked User/Group Permissions',true)
+end
+
+function erayan.checkUserPermissionsOnData(self, datarow)
+	erayan.pmsg('Recieved User/Group Permission Data',true)
+	if not datarow['ulibPermissionKind'] then
+		erayan.saveGroupsTwo(self.uid ,self.data, 'allow')
+		erayan.saveGroupsTwo(self.uid ,self.data, 'deny') 
+	end
+	print(type(datarow['Hits']),type(#self.data[datarow['ulibPermissionKind']]))
+	if tonumber(datarow['Hits']) > #self.data[datarow['ulibPermissionKind']] then
+			erayan.pmsg('Removing User/Group Permissions...',true)
+			erayan.doRemoveUserPermissions(self.uid, self.ukind, self.data, datarow['ulibPermissionKind'])
+	else
+			erayan.saveGroupsTwo(self.uid ,self.data, datarow['ulibPermissionKind'])
+	end
 end
