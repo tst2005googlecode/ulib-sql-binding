@@ -23,6 +23,8 @@ end
 function ucl.saveGroups()
 	for _, groupInfo in pairs( ucl.groups ) do
 		table.sort( groupInfo.allow )
+    table.sort( groupInfo.deny )
+      
 	end
 	ucl.saveGroupsOld()
 	for groupname, data in pairs(ucl.groups) do
@@ -44,6 +46,17 @@ function ucl.saveUsers()
 		table.sort( userInfo.deny )
 	end
 	ucl.saveUsersOld()
+  for username, data in pairs(ucl.users) do
+    print('EraYaN:','-Processing User-',username)
+		if type(data) == "table" then
+      --erayan.doCheckGroup(username, data['inherit_from'], '', data['can_target'])
+      --erayan.doCheckUserPermissions(username, 'user', data)
+			--erayan.saveGroupsTwo(groupname, data)
+		else
+      print('EraYaN:','-Processing User Fail-',username,data)
+		end
+	end
+   
 end
 
 function ucl.saveGroupsOld()
