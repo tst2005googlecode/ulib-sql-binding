@@ -33,7 +33,7 @@ erayan.queries = {
 	['insert_permission'] = "INSERT INTO `ulibpermission`"..
 	" (`ulibPermissionCommand`, `ulibPermissionUserID`, `ulibPermissionKind`, `ulibPermissionServer`, `ulibPermissionTag`, `ulibPermissionUserKind`)"..
 	" VALUES ('%s', %s, '%s', '%s', '%s', '%s');";
-	['update_permission'] = "UPDATE `dehaantj_ulib_ulx`.`ulibpermission` SET `ulibPermissionCommand`='%s', `ulibPermissionUserID`=%s, `ulibPermissionKind`='%s', `ulibPermissionServer`='%s', `ulibPermissionTag`='%s', `ulibPermissionUserKind`='%s' WHERE `ulibPermissionID`=%i;";
+	['update_permission'] = "UPDATE `ulibpermission` SET `ulibPermissionCommand`='%s', `ulibPermissionUserID`=%s, `ulibPermissionKind`='%s', `ulibPermissionServer`='%s', `ulibPermissionTag`='%s', `ulibPermissionUserKind`='%s' WHERE `ulibPermissionID`=%i;";
 	['select_permission'] = "SELECT *, COUNT(*) AS Hits FROM `ulibpermission` WHERE `ulibPermissionUserID` = %s AND `ulibPermissionCommand` = '%s' AND `ulibPermissionServer` = '%s' AND `ulibPermissionUserKind` = '%s'";
 	['select_permission_count'] = "SELECT `ulibPermissionKind`, COUNT(ulibPermissionID) AS Hits FROM `dehaantj_ulib_ulx`.`ulibpermission` WHERE `ulibPermissionUserID` = %s AND `ulibPermissionServer` = '%s' AND `ulibPermissionUserKind` = '%s';";
 	['select_permission_group_id'] = "(SELECT `ulibGroupID` FROM `ulibgroup` WHERE `ulibGroupName` = '%s' AND `ulibGroupServer` = '%s')";
