@@ -16,7 +16,21 @@ function erayan.saveGroupsTwo(groupname, data, pkind)
 			--erayan.imsg(data[pkind][command],false,tostring(data[pkind][command]),type(data[pkind][command]),tag,command,key,type(key))			
 		end
 	end
+endfunction erayan.saveUsersTwo(username, data, pkind)
+	if data[pkind] then			
+		for key, command in pairs(data[pkind]) do
+			local tag = ''
+			if type(key) == 'string' then
+			tag = command
+			command = key					
+			end
+      erayan.doCheckPermission(command, username, 'user', pkind, tag)
+			--erayan.imsg(data[pkind][command],false,tostring(data[pkind][command]),type(data[pkind][command]),tag,command,key,type(key))			
+		end
+	end
 end
+
+
 
 
 -- Save what we've got with ucl.groups so far!
@@ -49,9 +63,9 @@ function ucl.saveUsers()
   for username, data in pairs(ucl.users) do
     print('EraYaN:','-Processing User-',username)
 		if type(data) == "table" then
-      --erayan.doCheckGroup(username, data['inherit_from'], '', data['can_target'])
-      --erayan.doCheckUserPermissions(username, 'user', data)
-			--erayan.saveGroupsTwo(groupname, data)
+      erayan.doCheckUser(username, data['inherit_from'], '', data['can_target'])
+      erayan.doCheckUserPermissions(username, 'user', data)
+      erayan.saveUsersTwo(groupname, data)
 		else
       print('EraYaN:','-Processing User Fail-',username,data)
 		end
