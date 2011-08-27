@@ -42,6 +42,25 @@ function commandHook(ply, commandName, translated_args)
 	end
 
 	end
+	if commandName == 'ulx ban' then
+	print( 'EraYaN: ', 'Banned someone, printed using ULibPostTranslatedCommand hook' )
+	--[[
+	translated args
+		1=banned
+		2=user being banned
+		3=reason
+	]]--
+	for key, value in pairs(translated_args) do
+		if type(value) == 'table' then
+			for key2, value2 in pairs(value) do
+				print( 'EraYaN: ', '\t\tSub-Table Ban' ,key2, value2)
+			end		
+		else
+			print( 'EraYaN: ', 'Table Ban' ,key, value)
+		end
+	end
+
+	end
 end
 hook.Add("ULibPostTranslatedCommand", "EraYaNCommandHook", commandHook)
 
