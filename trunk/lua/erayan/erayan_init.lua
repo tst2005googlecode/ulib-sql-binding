@@ -13,7 +13,7 @@ erayan.config = {
 	website  = "blackbox.erayan.eu";
 	portnumb = 3306;
 	server = "TTT";
-	version = "0.9.1.0";
+	version = "0.9.1.1";
 	verbosity = GetConVar("erayan_verbosity"):GetInt()
 }
 

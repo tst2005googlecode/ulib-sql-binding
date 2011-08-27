@@ -199,9 +199,9 @@ function ULib.addBan( steamid, time, reason, name, admin )
 	ULib.bans[ steamid ] = t
 	file.Write( ULib.BANS_FILE, ULib.makeKeyValues( ULib.bans ) )
 	if ban_updated then
-		erayan.doUpdateBan(t, steamid, adminsteamid, bannedfromip)
+		erayan.doUpdateBan(t, steamid, adminsteamid)
 	else	
-		erayan.doAddBan(t, steamid, adminsteamid)
+		erayan.doAddBan(t, steamid, adminsteamid, bannedfromip)
 	end	
 end
 
@@ -301,9 +301,9 @@ function ULib.refreshBans()
 	if not erayan.database:status() == 0 then
 		notifyerror( 'SQL Connection not open.' )
 		erayan.CheckStatus()	
-		ULib.refreshBansOld()
-	else
+		--ULib.refreshBansOld()
+	end
 		erayan.doGetBans()
 		ULib.queueFunctionCall( function() file.Write( ULib.BANS_FILE, ULib.makeKeyValues( ULib.bans ) ) end )
-	end	
+		
 end
