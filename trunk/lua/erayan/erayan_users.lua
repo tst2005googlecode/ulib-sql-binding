@@ -38,7 +38,7 @@ function erayan.doCheckUser(ply)
 		erayan.CheckStatus()		
 	end
 	if ply:IsBot() then return end
-		local queryText = erayan.queries['select_user']:format(ply:SteamID(),erayan.config.server)
+		local queryText = erayan.queries['select_user']:format(ply:SteamID(), erayan.config.server)
 		erayan.dmsg('Query',false,queryText)
 	local query = erayan.database:query(queryText)
 	if query and erayan.database:status() == 0 then
@@ -117,7 +117,7 @@ function erayan.doUpdateUser2(ply)
 		erayan.CheckStatus()		
 	end
 	if ply:IsBot() then return end
-		local queryText = erayan.queries['update_user_2']:format(erayan.database:escape(ply:GetName()), ply:Frags(), ply:Deaths(), ply:SteamID())
+		local queryText = erayan.queries['update_user_2']:format(erayan.database:escape(ply:GetName()), ply:Frags(), ply:Deaths(), math.floor((ply:GetUTime() + CurTime() - ply:GetUTimeStart()), ply:SteamID(), erayan.config.server))
 		erayan.dmsg('Query',false,queryText)
 	local query = erayan.database:query(queryText)
 	if query and erayan.database:status() == 0 then
