@@ -165,7 +165,7 @@ function erayan.getBansOnData(self, datarow)
 	local time = ( datarow['ulibBanMinutes'] - os.time() ) / 60
 	if time > 0 then
 		game.ConsoleCommand( string.format( "banid %f %s\n", time, steamid) )	
-		erayan.dmsg('Banned user %s for %i more minutes':format(steamid, time),false)
+		erayan.dmsg(('Banned user %s for %i more minutes'):format(steamid, time),false)
 	elseif math.floor( datarow['ulibBanMinutes'] ) == 0 then -- We floor it because GM10 has floating point errors that might make it be 0.1e-20 or something dumb.
 		if not ban_set[ k ] then
 			ULib.bans[ k ] = nil
