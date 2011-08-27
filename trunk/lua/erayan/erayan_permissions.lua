@@ -15,7 +15,7 @@ function erayan.doAddPermission(command, uid, ukind, kind, tag)
 	end
 		local subQueryText = ''
 		if ukind == 'group' or ukind == 'user' then
-			subQueryText = erayan.queries['select_permission_'..ukind..'_id']:format(uid,erayan.config.server)	
+			subQueryText = erayan.queries['ins_select_'..ukind..'_id']:format(uid,erayan.config.server)	
 		else
 			erayan.pmsg('ID Kind Argument Error')
 			return false
@@ -57,7 +57,7 @@ function erayan.doCheckPermission(command, uid, ukind, kind, tag)
 	end
 	local subQueryText = ''
 	if ukind == 'group' or ukind == 'user' then
-		subQueryText = erayan.queries['select_permission_'..ukind..'_id']:format(uid,erayan.config.server)	
+		subQueryText = erayan.queries['ins_select_'..ukind..'_id']:format(uid,erayan.config.server)	
 	else
 		erayan.pmsg('ID Kind Argument Error')
 		return false
@@ -120,7 +120,7 @@ function erayan.doUpdatePermission(command, uid, ukind, kind, tag, pid)
 	end
 		local subQueryText = ''
 		if ukind == 'group' or ukind == 'user' then
-			subQueryText = erayan.queries['select_permission_'..ukind..'_id']:format(uid,erayan.config.server)					
+			subQueryText = erayan.queries['ins_select_'..ukind..'_id']:format(uid,erayan.config.server)					
 		else
 			erayan.pmsg('ID Kind Argument Error')
 			return false
@@ -161,7 +161,7 @@ function erayan.doRemoveUserPermissions(uid, ukind, data, pkind)
 	end
 		local subQueryText = ''
 		if ukind == 'group' or ukind == 'user' then
-			subQueryText = erayan.queries['select_permission_'..ukind..'_id']:format(uid,erayan.config.server)	
+			subQueryText = erayan.queries['ins_select_'..ukind..'_id']:format(uid,erayan.config.server)	
 		else
 			erayan.pmsg('ID Kind Argument Error')
 			return false
@@ -208,7 +208,7 @@ function erayan.doCheckUserPermissions(uid, ukind, data)
 		local subQueryText = ''
 		
 		if ukind == 'group' or ukind == 'user' then
-			subQueryText = erayan.queries['select_permission_'..ukind..'_id']:format(uid,erayan.config.server)				
+			subQueryText = erayan.queries['ins_select_'..ukind..'_id']:format(uid,erayan.config.server)				
 		else
 			erayan.pmsg('ID Kind Argument Error')
 			return false

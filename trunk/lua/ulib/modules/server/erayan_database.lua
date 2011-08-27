@@ -24,6 +24,9 @@ erayan.queries = {
 	['select_user'] = "SELECT *, COUNT(*) AS Hits FROM `ulibuser` WHERE ulibUserSteamID = '%s' AND `ulibUserServer` = '%s' LIMIT 1;";
 	['update_user'] = "UPDATE `ulibuser` SET `ulibUserName`='%s', `ulibUserLastVisited`=NOW(), `ulibUserTimesVisited`=`ulibUserTimesVisited`+1, `ulibUserLastUsedIP`='%s' WHERE `ulibUserID`=%i;";
 	['update_user_2'] = "UPDATE `ulibuser` SET `ulibUserName`='%s', `ulibUserLastVisited`=NOW(), `ulibUserFrags`=`ulibUserFrags`+%i,`ulibUserDeaths`=`ulibUserDeaths`+%i, `ulibUserTimePlayed`=%i WHERE `ulibUserSteamID`='%s' AND `ulibUserServer`='%s';";
+	-- Insertables Queries
+	['ins_select_group_id'] = "(SELECT `ulibGroupID` FROM `ulibgroup` WHERE `ulibGroupName` = '%s' AND `ulibGroupServer` = '%s')";
+	['ins_select_user_id'] = "(SELECT `ulibUserID` FROM `ulibuser` WHERE `ulibUserSteamID` = '%s' AND `ulibUserServer` = '%s')";
 	-- Groups
 	['select_group_list'] = "SELECT *  FROM `ulibgroup` WHERE `ulibGroupServer` = '%s' ";
 	['select_group'] = "SELECT *, COUNT(*) AS Hits FROM `ulibgroup` WHERE `ulibGroupName` = '%s' AND `ulibGroupServer` = '%s' LIMIT 1;";
@@ -36,11 +39,13 @@ erayan.queries = {
 	['update_permission'] = "UPDATE `ulibpermission` SET `ulibPermissionCommand`='%s', `ulibPermissionUserID`=%s, `ulibPermissionKind`='%s', `ulibPermissionServer`='%s', `ulibPermissionTag`='%s', `ulibPermissionUserKind`='%s' WHERE `ulibPermissionID`=%i;";
 	['select_permission'] = "SELECT *, COUNT(*) AS Hits FROM `ulibpermission` WHERE `ulibPermissionUserID` = %s AND `ulibPermissionCommand` = '%s' AND `ulibPermissionServer` = '%s' AND `ulibPermissionUserKind` = '%s'";
 	['select_permission_count'] = "SELECT `ulibPermissionKind`, COUNT(ulibPermissionID) AS Hits FROM `dehaantj_ulib_ulx`.`ulibpermission` WHERE `ulibPermissionUserID` = %s AND `ulibPermissionServer` = '%s' AND `ulibPermissionUserKind` = '%s';";
-	['select_permission_group_id'] = "(SELECT `ulibGroupID` FROM `ulibgroup` WHERE `ulibGroupName` = '%s' AND `ulibGroupServer` = '%s')";
-	['select_permission_user_id'] = "(SELECT `ulibUserID` FROM `ulibuser` WHERE `ulibUserSteamID` = '%s' AND `ulibUserServer` = '%s')";
 	['delete_permission'] = "DELETE FROM `ulibpermission` WHERE `ulibPermissionID` = %i AND `ulibPermissionServer` = '%s'";
 	['delete_permission_user'] = "DELETE FROM `ulibpermission` WHERE `ulibPermissionUserID` = %s AND `ulibPermissionServer` = '%s' AND `ulibPermissionUserKind` = '%s' AND `ulibPermissionKind` = '%s'";
-	
+	-- Bans
+	['insert_ban'] = "INSERT INTO `dehaantj_ulib_ulx`.`ulibban` (`ulibBanSteamID`, `ulibBanUserID`, `ulibBanAdminID`, `ulibBanReason`, `ulibBanMinutes`, `ulibBanIP`, `ulibBanServer`, `ulibBanTime`) VALUES ('%s', %i, %i, '%s', %i, '%s', '%s', NOW())";
+	['update_ban'] = "UPDATE `dehaantj_ulib_ulx`.`ulibban` SET `ulibBanModifiedAdminID`=%i, `ulibBanModifiedTime`=NOW(), `ulibBanReason`='%s', `ulibBanMinutes`=%i WHERE `ulibBanSteamID`='%s' AND `ulibBanServer`='%s'";
+	['delete_ban'] = "DELETE FROM `dehaantj_ulib_ulx`.`ulibban` WHERE `ulibBanSteamID`='%s' AND `ulibBanServer`='%s' LIMIT 1";
+	['select_bans'] = "SELECT * FROM `dehaantj_ulib_ulx`.`ulibban` WHERE `ulibBanServer`='%s'";
 }
 
 local function blankCallback() end
@@ -91,6 +96,8 @@ include('./erayan/erayan_users.lua');
 include('./erayan/erayan_groups.lua');
 
 include('./erayan/erayan_permissions.lua');
+
+include('./erayan/erayan_bans.lua');
 
 function erayan.pendingOnFailure(self, err)
 	notifyerror( 'Pending SQL could\'t execute',err )
