@@ -16,7 +16,8 @@ function erayan.saveGroupsTwo(groupname, data, pkind)
 			--erayan.imsg(data[pkind][command],false,tostring(data[pkind][command]),type(data[pkind][command]),tag,command,key,type(key))			
 		end
 	end
-endfunction erayan.saveUsersTwo(username, data, pkind)
+end
+function erayan.saveUsersTwo(username, data, pkind)
 	if data[pkind] then			
 		for key, command in pairs(data[pkind]) do
 			local tag = ''
@@ -28,12 +29,7 @@ endfunction erayan.saveUsersTwo(username, data, pkind)
 			--erayan.imsg(data[pkind][command],false,tostring(data[pkind][command]),type(data[pkind][command]),tag,command,key,type(key))			
 		end
 	end
-end
-
-
-
-
--- Save what we've got with ucl.groups so far!
+end-- Save what we've got with ucl.groups so far!
 function ucl.saveGroups()
 	for _, groupInfo in pairs( ucl.groups ) do
 		table.sort( groupInfo.allow )

@@ -1,0 +1,182 @@
+[mysql3] => table
+    (
+       [allow] => table
+           (
+           )
+       [inherit_from] => mysql2
+    )
+[superadmin] => table
+    (
+       [allow] => table
+           (
+              [1] => ulx addgroup
+              [2] => ulx adduser
+              [3] => ulx adduserid
+              [4] => ulx cexec
+              [5] => ulx ent
+              [6] => ulx exec
+              [7] => ulx groupallow
+              [8] => ulx groupdeny
+              [9] => ulx hiddenecho
+              [10] => ulx logchat
+              [11] => ulx logdir
+              [12] => ulx logecho
+              [13] => ulx logechocolorconsole
+              [14] => ulx logechocolordefault
+              [15] => ulx logechocoloreveryone
+              [16] => ulx logechocolormisc
+              [17] => ulx logechocolorplayer
+              [18] => ulx logechocolorplayerasgroup
+              [19] => ulx logechocolors
+              [20] => ulx logechocolorself
+              [21] => ulx logevents
+              [22] => ulx logfile
+              [23] => ulx logjoinleaveecho
+              [24] => ulx logspawns
+              [25] => ulx logspawnsecho
+              [26] => ulx luarun
+              [27] => ulx maul
+              [28] => ulx rcon
+              [29] => ulx removegroup
+              [30] => ulx removeuser
+              [31] => ulx removeuserid
+              [32] => ulx renamegroup
+              [33] => ulx setgroupcantarget
+              [34] => ulx userallow
+              [35] => ulx userallowid
+              [36] => ulx userdeny
+              [37] => ulx userdenyid
+              [38] => ulx voteecho
+              [39] => xgui_gmsettings
+              [40] => xgui_managebans
+              [41] => xgui_managegroups
+              [42] => xgui_svsettings
+              [ulx tsay] => <blah,blh,omg,faggot>
+           )
+       [inherit_from] => admin
+    )
+[admin] => table
+    (
+       [can_target] => !%superadmin
+       [allow] => table
+           (
+              [1] => ulx armor
+              [2] => ulx ban
+              [3] => ulx banid
+              [4] => ulx blind
+              [5] => ulx bring
+              [6] => ulx chattime
+              [7] => ulx cloak
+              [8] => ulx csay
+              [9] => ulx freeze
+              [10] => ulx gag
+              [11] => ulx gimp
+              [12] => ulx god
+              [13] => ulx goto
+              [14] => ulx hp
+              [15] => ulx ignite
+              [16] => ulx jail
+              [17] => ulx kick
+              [18] => ulx kickafternamechanges
+              [19] => ulx kickafternamechangescooldown
+              [20] => ulx kickafternamechangeswarning
+              [21] => ulx map
+              [22] => ulx mute
+              [23] => ulx noclip
+              [24] => ulx physgunplayer
+              [25] => ulx playsound
+              [26] => ulx ragdoll
+              [27] => ulx reservedslots
+              [28] => ulx rslots
+              [29] => ulx rslotsmode
+              [30] => ulx rslotsvisible
+              [31] => ulx seeanonymousechoes
+              [32] => ulx send
+              [33] => ulx showmotd
+              [34] => ulx slap
+              [35] => ulx slay
+              [36] => ulx spawnecho
+              [37] => ulx spectate
+              [38] => ulx sslay
+              [39] => ulx strip
+              [40] => ulx teleport
+              [41] => ulx unban
+              [42] => ulx unblind
+              [43] => ulx uncloak
+              [44] => ulx unfreeze
+              [45] => ulx ungag
+              [46] => ulx ungimp
+              [47] => ulx ungod
+              [48] => ulx unignite
+              [49] => ulx unigniteall
+              [50] => ulx unjail
+              [51] => ulx unmute
+              [52] => ulx unragdoll
+              [53] => ulx veto
+              [54] => ulx vote
+              [55] => ulx voteban
+              [56] => ulx votebanminvotes
+              [57] => ulx votebansuccessratio
+              [58] => ulx votekick
+              [59] => ulx votekickminvotes
+              [60] => ulx votekicksuccessratio
+              [61] => ulx votemap2
+              [62] => ulx votemap2minvotes
+              [63] => ulx votemap2successratio
+              [64] => ulx votemapenabled
+              [65] => ulx votemapmapmode
+              [66] => ulx votemapmintime
+              [67] => ulx votemapminvotes
+              [68] => ulx votemapsuccessratio
+              [69] => ulx votemapvetotime
+              [70] => ulx votemapwaittime
+              [71] => ulx welcomemessage
+              [72] => ulx whip
+              [ulx tsay] => <bluh,omfg>
+           )
+       [inherit_from] => operator
+    )
+[mysql2] => table
+    (
+       [allow] => table
+           (
+           )
+       [inherit_from] => mysql1
+    )
+[user] => table
+    (
+       [allow] => table
+           (
+              [1] => ulx asay
+              [2] => ulx help
+              [3] => ulx motd
+              [4] => ulx psay
+              [5] => ulx thetime
+              [6] => ulx usermanagementhelp
+              [7] => ulx votemap
+              [8] => ulx who
+           )
+    )
+[mysql1] => table
+    (
+       [allow] => table
+           (
+           )
+       [inherit_from] => user
+    )
+[owner] => table
+    (
+       [allow] => table
+           (
+           )
+       [inherit_from] => superadmin
+    )
+[operator] => table
+    (
+       [can_target] => !%admin
+       [allow] => table
+           (
+              [1] => ulx seeasay
+           )
+       [inherit_from] => user
+    )
