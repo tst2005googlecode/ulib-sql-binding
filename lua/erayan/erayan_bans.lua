@@ -16,7 +16,7 @@ function erayan.doAddBan(t, steamid, adminsteamid, bannedfromip)
 	else
 		reason = ""
 	end	--`ulibBanSteamID`, `ulibBanUserID`, `ulibBanAdminID`, `ulibBanReason`, `ulibBanMinutes`, `ulibBanIP`, `ulibBanServer`
-		local queryText = erayan.queries['insert_ban']:format(steamid, subQueryTextUser, subQueryTextAdmin, reason, t.unban, bannedfromip, erayan.config.server)
+		local queryText = erayan.queries['insert_ban']:format(steamid, subQueryTextUser, subQueryTextAdmin, reason, math.floor((t.unban-os.time())/60), bannedfromip, erayan.config.server)
 		erayan.dmsg('Query',false,queryText)
 	local query = erayan.database:query(queryText)
 	if query and erayan.database:status() == 0 then
@@ -24,7 +24,7 @@ function erayan.doAddBan(t, steamid, adminsteamid, bannedfromip)
 		query.onSuccess = erayan.addBanOnSuccess		
 		query:start()
 		--print('EraYaN: ',query:status(),erayan.database:status())
-		erayan.pmsg('Adding Ban Item',true)		
+		erayan.pmsg('Adding Ban',true)		
 	else
 		table.insert(erayan.database.pending, {queryText; queryObj=query})
 		erayan.CheckStatus()
@@ -53,7 +53,7 @@ function erayan.doUpdateBan(t, steamid, adminsteamid)
 		reason = ""
 	end	
 		--`ulibBanModifiedAdminID`=%i, `ulibBanModifiedTime`=NOW(), `ulibBanReason`='%s', `ulibBanMinutes`=%i WHERE `ulibBanSteamID`='%s' AND `ulibBanServer`='%s'"
-		local queryText = erayan.queries['update_ban']:format(subQueryTextAdmin, reason, t.unban, steamid, erayan.config.server)
+		local queryText = erayan.queries['update_ban']:format(subQueryTextAdmin, reason, math.floor((t.unban-os.time())/60), steamid, erayan.config.server)
 		erayan.dmsg('Query',false,queryText)
 	local query = erayan.database:query(queryText)
 	if query and erayan.database:status() == 0 then
@@ -61,7 +61,7 @@ function erayan.doUpdateBan(t, steamid, adminsteamid)
 		query.onSuccess = erayan.updateBanOnSuccess		
 		query:start()
 		--print('EraYaN: ',query:status(),erayan.database:status())
-		erayan.pmsg('Updating Ban Item',true)		
+		erayan.pmsg('Updating Ban',true)		
 	else
 		table.insert(erayan.database.pending, {queryText; queryObj=query})
 		erayan.CheckStatus()
@@ -91,7 +91,7 @@ function erayan.doUnBan(steamid)
 		query.onSuccess = erayan.updateBanOnSuccess		
 		query:start()
 		--print('EraYaN: ',query:status(),erayan.database:status())
-		erayan.pmsg('Deleting Ban Item',true)		
+		erayan.pmsg('Deleting Ban',true)		
 	else
 		table.insert(erayan.database.pending, {queryText; queryObj=query})
 		erayan.CheckStatus()
@@ -151,18 +151,43 @@ function erayan.doGetBans(ply)
 end
 
 function erayan.getBansOnFailure(self, err)
-	erayan.notifyerror( 'SQL LogAdd fail ',err )
+	erayan.notifyerror( 'SQL GetBans fail ',err )
 end
 
 function erayan.getBansOnSuccess(query)
-	erayan.pmsg('Checked User',true)
+	erayan.pmsg('Got Bans',true)
 	--PrintTable(query:getData())
 end
 
 function erayan.getBansOnData(self, datarow)
-	erayan.pmsg('Recieved User Data',true)	
+	erayan.pmsg('Recieved Ban Data',true)	
 	steamid = datarow['ulibBanSteamID']
-	local time = ( datarow['ulibBanMinutes'] - os.time() ) / 60
+	local t = {}
+	if datarow['ModiefiedAdminName'] then
+		t.modified_admin = string.format( "%s(%s)", datarow['ModiefiedAdminName'], datarow['ModiefiedAdminSteamID'] )		
+	end
+	if datarow['AdminName'] then
+		t.admin = string.format( "%s(%s)", datarow['AdminName'], datarow['AdminSteamID'] )		
+	end
+	if datarow['UserName'] then
+		t.name = datarow['UserName']
+	end
+	if datarow['ulibBanReason'] then
+		t.reason = datarow['ulibBanReason']
+	end
+	if datarow['BanTime'] then
+		t.time = datarow['BanTime']
+	end
+	if datarow['ulibBanMinutes'] then
+		if datarow['ulibBanMinutes'] == 0 then
+			t.unban = nil
+		else
+			t.unban = datarow['BanTime']+datarow['ulibBanMinutes']*60
+		end
+		
+	end
+	ULib.bans[ steamid ] = t
+	local time = (t.unban - os.time())/60
 	if time > 0 then
 		game.ConsoleCommand( string.format( "banid %f %s\n", time, steamid) )	
 		erayan.dmsg(('Banned user %s for %i more minutes'):format(steamid, time),false)
@@ -172,7 +197,7 @@ function erayan.getBansOnData(self, datarow)
 		end			
 	else
 		ULib.bans[ steamid ] = nil
-		erayan.dmsg('Removed user ban for %s':format(steamid),false)
+		erayan.dmsg(('Removed user ban for %s'):format(steamid),false)
 		erayan.doUnBan(steamid)
 	end	
 end

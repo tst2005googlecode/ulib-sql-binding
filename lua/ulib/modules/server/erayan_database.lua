@@ -42,10 +42,22 @@ erayan.queries = {
 	['delete_permission'] = "DELETE FROM `ulibpermission` WHERE `ulibPermissionID` = %i AND `ulibPermissionServer` = '%s'";
 	['delete_permission_user'] = "DELETE FROM `ulibpermission` WHERE `ulibPermissionUserID` = %s AND `ulibPermissionServer` = '%s' AND `ulibPermissionUserKind` = '%s' AND `ulibPermissionKind` = '%s'";
 	-- Bans
-	['insert_ban'] = "INSERT INTO `dehaantj_ulib_ulx`.`ulibban` (`ulibBanSteamID`, `ulibBanUserID`, `ulibBanAdminID`, `ulibBanReason`, `ulibBanMinutes`, `ulibBanIP`, `ulibBanServer`, `ulibBanTime`) VALUES ('%s', %i, %i, '%s', %i, '%s', '%s', NOW())";
-	['update_ban'] = "UPDATE `dehaantj_ulib_ulx`.`ulibban` SET `ulibBanModifiedAdminID`=%i, `ulibBanModifiedTime`=NOW(), `ulibBanReason`='%s', `ulibBanMinutes`=%i WHERE `ulibBanSteamID`='%s' AND `ulibBanServer`='%s'";
+	['insert_ban'] = "INSERT INTO `dehaantj_ulib_ulx`.`ulibban` (`ulibBanSteamID`, `ulibBanUserID`, `ulibBanAdminID`, `ulibBanReason`, `ulibBanMinutes`, `ulibBanIP`, `ulibBanServer`, `ulibBanTime`) VALUES ('%s', %s, %s, '%s', %i, '%s', '%s', NOW())";
+	['update_ban'] = "UPDATE `dehaantj_ulib_ulx`.`ulibban` SET `ulibBanModifiedAdminID`=%s, `ulibBanModifiedTime`=NOW(), `ulibBanReason`='%s', `ulibBanMinutes`=%i WHERE `ulibBanSteamID`='%s' AND `ulibBanServer`='%s'";
 	['delete_ban'] = "DELETE FROM `dehaantj_ulib_ulx`.`ulibban` WHERE `ulibBanSteamID`='%s' AND `ulibBanServer`='%s' LIMIT 1";
-	['select_bans'] = "SELECT * FROM `dehaantj_ulib_ulx`.`ulibban` WHERE `ulibBanServer`='%s'";
+	--['select_bans'] = "SELECT * FROM `dehaantj_ulib_ulx`.`ulibban` WHERE `ulibBanServer`='%s'";
+	--[[['select_bans'] = "SELECT users.`ulibUserName` as UserName, admins.`ulibUserName` as AdminName, admins.`ulibUserSteamID` as AdminSteamID,"..
+	"modadmins.`ulibUserName` as ModifiedAdminName, modadmins.`ulibUserSteamID` as ModifiedAdminSteamID, bans.* FROM `dehaantj_ulib_ulx`.`ulibban` AS bans"..
+	"LEFT OUTER JOIN `dehaantj_ulib_ulx`.`ulibuser` AS users ON users.`ulibUserID`=bans.`ulibBanUserID`"..
+	"LEFT OUTER JOIN `dehaantj_ulib_ulx`.`ulibuser` AS admins ON admins.`ulibUserID`=bans.`ulibBanAdminID`"..
+	"LEFT OUTER JOIN `dehaantj_ulib_ulx`.`ulibuser` AS modadmins ON modadmins.`ulibUserID`=bans.`ulibBanModifiedAdminID`";]]
+	['select_bans'] = "SELECT users.`ulibUserName` as UserName, admins.`ulibUserName` as AdminName, admins.`ulibUserSteamID` as AdminSteamID,"..
+	"modadmins.`ulibUserName` as ModifiedAdminName, modadmins.`ulibUserSteamID` as ModifiedAdminSteamID,"..
+	"UNIX_TIMESTAMP(bans.`ulibBanTime`) as BanTime,  UNIX_TIMESTAMP(bans.`ulibBanModifiedTime`) as ModBanTime, bans.*"..
+	"FROM `dehaantj_ulib_ulx`.`ulibban` AS bans"..
+	"LEFT OUTER JOIN `dehaantj_ulib_ulx`.`ulibuser` AS users ON users.`ulibUserID`=bans.`ulibBanUserID`"..
+	"LEFT OUTER JOIN `dehaantj_ulib_ulx`.`ulibuser` AS admins ON admins.`ulibUserID`=bans.`ulibBanAdminID`"..
+	"LEFT OUTER JOIN `dehaantj_ulib_ulx`.`ulibuser` AS modadmins ON modadmins.`ulibUserID`=bans.`ulibBanModifiedAdminID`";
 }
 
 local function blankCallback() end
