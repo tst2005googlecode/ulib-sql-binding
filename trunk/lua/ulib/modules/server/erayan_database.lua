@@ -20,7 +20,7 @@ erayan.queries = {
 	-- Users (insert, select, update)
 	['insert_user'] = "INSERT INTO `ulibuser` "..
 	"(`ulibUserSteamID`, `ulibUserName`, `ulibUserGroupID`, `ulibUserLastVisited`, `ulibUserFirstVisited`, `ulibUserTimesVisited`, `ulibUserLastUsedIP`, `ulibUserFirstUsedIP`, `ulibUserServer`)"..
-	" VALUES ('%s', '%s', %s, NOW(), NOW(), 1, '%s', '%s', '%s');";
+	" VALUES ('%s', '%s', %s, NOW(), NOW(), %i, '%s', '%s', '%s');";
 	['select_user'] = "SELECT *, COUNT(*) AS Hits FROM `ulibuser` WHERE ulibUserSteamID = '%s' AND `ulibUserServer` = '%s' LIMIT 1;";
 	['update_user'] = "UPDATE `ulibuser` SET `ulibUserName`='%s', `ulibUserLastVisited`=NOW(), `ulibUserGroupID`=%s, `ulibUserTimesVisited`=`ulibUserTimesVisited`+%i, `ulibUserLastUsedIP`='%s' WHERE `ulibUserID`=%i;";
 	['update_user_2'] = "UPDATE `ulibuser` SET `ulibUserName`='%s', `ulibUserLastVisited`=NOW(), `ulibUserFrags`=`ulibUserFrags`+%i,`ulibUserDeaths`=`ulibUserDeaths`+%i, `ulibUserTimePlayed`= CASE WHEN (%i-90)>`ulibUserTimePlayed`+%i THEN %i ELSE `ulibUserTimePlayed`+%i END, `ulibUserLastUsedIP`='%s' WHERE `ulibUserSteamID`='%s' AND `ulibUserServer`='%s';";

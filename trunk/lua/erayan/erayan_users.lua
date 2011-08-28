@@ -8,13 +8,13 @@ function erayan.doAddUser(ply, name, group)
 		erayan.CheckStatus()		
 	end	
 	local queryText = ''
-	if ply:IsValid() then
-		
+	erayan.pmsg(type(ply))
+	if type(ply) == 'Player' then		
 		if ply:IsBot() then return end
-		queryText = erayan.queries['insert_user']:format(ply:SteamID(),erayan.database:escape(ply:GetName()),'0',erayan.getIP(ply),erayan.getIP(ply),erayan.config.server)
+		queryText = erayan.queries['insert_user']:format(ply:SteamID(),erayan.database:escape(ply:GetName()),'0',1,erayan.getIP(ply),erayan.getIP(ply),erayan.config.server)
 	else
 		subQueryText = erayan.queries['ins_select_group_id']:format(group,erayan.config.server)
-		queryText = erayan.queries['insert_user']:format(ply,erayan.database:escape(name),subQueryText,'(unknown)','(unknown)',erayan.config.server)
+		queryText = erayan.queries['insert_user']:format(ply,erayan.database:escape(name),subQueryText,0,'(unknown)','(unknown)',erayan.config.server)
 	end	
 	erayan.dmsg('Query',false,queryText)
 	local query = erayan.database:query(queryText)
@@ -45,7 +45,8 @@ function erayan.doCheckUser(ply, name, group)
 		erayan.CheckStatus()		
 	end	
 	local SteamID = '';	
-	if ply:IsValid() then
+	erayan.pmsg(type(ply))
+	if type(ply) == 'Player' then
 		SteamID = ply:SteamID()
 		if ply:IsBot() then return end
 	else
@@ -83,7 +84,7 @@ end
 
 function erayan.checkUserOnData(self, datarow)
 	erayan.pmsg('Recieved User Data',true)
-	if ply:IsValid() then
+	if type(ply) == 'Player' then
 		SteamID = ply:SteamID()
 		if self.ply:IsBot() then 
 		erayan.pmsg('We dont want bots in our DB',true)
@@ -118,7 +119,7 @@ function erayan.doUpdateUser(ply, id, name, group)
 	end
 	if ply:IsBot() then return end
 	local queryText = ''
-	if ply:IsValid() then		
+	if type(ply) == 'Player' then		
 		if ply:IsBot() then return end
 		subQueryText = erayan.queries['ins_select_group_id']:format(ply:GetUserGroup(),erayan.config.server)
 		queryText = erayan.queries['update_user']:format(erayan.database:escape(ply:GetName()),subQueryText, 1, id)
