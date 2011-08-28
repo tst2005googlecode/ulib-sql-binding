@@ -13,7 +13,7 @@ function erayan.saveGroupsTwo(groupname, data, pkind)
 			command = key					
 			end
 			erayan.doCheckPermission(command, groupname, 'group', pkind, tag)
-			--erayan.imsg(data[pkind][command],false,tostring(data[pkind][command]),type(data[pkind][command]),tag,command,key,type(key))			
+			erayan.dmsg(data[pkind][command],false,tostring(data[pkind][command]),type(data[pkind][command]),tag,command,key,type(key))			
 		end
 	end
 end
@@ -25,8 +25,8 @@ function erayan.saveUsersTwo(username, data, pkind)
 			tag = command
 			command = key					
 			end
-      erayan.doCheckPermission(command, username, 'user', pkind, tag)
-			--erayan.imsg(data[pkind][command],false,tostring(data[pkind][command]),type(data[pkind][command]),tag,command,key,type(key))			
+			erayan.doCheckPermission(command, username, 'user', pkind, tag)
+			erayan.dmsg(data[pkind][command],false,tostring(data[pkind][command]),type(data[pkind][command]),tag,command,key,type(key))			
 		end
 	end
 end-- Save what we've got with ucl.groups so far!
@@ -38,7 +38,7 @@ function ucl.saveGroups()
 	end
 	ucl.saveGroupsOld()
 	for groupname, data in pairs(ucl.groups) do
-		print('EraYaN:','-Processing Group-',groupname)
+		erayan.dmsg('-Processing Group-',false,groupname)
 		if type(data) == "table" then
 			erayan.doCheckGroup(groupname, data['inherit_from'], '', data['can_target'])
 			erayan.doCheckUserPermissions(groupname, 'group', data)
@@ -57,11 +57,11 @@ function ucl.saveUsers()
 	end
 	ucl.saveUsersOld()
   for username, data in pairs(ucl.users) do
-    print('EraYaN:','-Processing User-',username)
+    erayan.dmsg('-Processing User-',false,username)
 		if type(data) == "table" then
-      erayan.doCheckUser(username, data['inherit_from'], '', data['can_target'])
+      erayan.doCheckUser(username, data['name'], data['group'])
       erayan.doCheckUserPermissions(username, 'user', data)
-      erayan.saveUsersTwo(groupname, data)
+      --erayan.saveUsersTwo(groupname, data)
 		else
       print('EraYaN:','-Processing User Fail-',username,data)
 		end

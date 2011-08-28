@@ -4,7 +4,7 @@ end
 
 function erayan.doAddBan(t, steamid, adminsteamid, bannedfromip)
 	if not erayan.database:status() == 0 then
-		notifyerror( 'SQL Connection not open.' )
+		erayan.notifyerror( 'SQL Connection not open.' )
 		erayan.CheckStatus()		
 	end
 	
@@ -26,7 +26,7 @@ function erayan.doAddBan(t, steamid, adminsteamid, bannedfromip)
 		--print('EraYaN: ',query:status(),erayan.database:status())
 		erayan.pmsg('Adding Ban',true)		
 	else
-		table.insert(erayan.database.pending, {queryText; queryObj=query})
+		table.insert(erayan.database.pending, {queryText; query})
 		erayan.CheckStatus()
 		erayan.pmsg('Add Ban Query Pending',true)
 	end
@@ -42,7 +42,7 @@ end
 
 function erayan.doUpdateBan(t, steamid, adminsteamid)
 	if not erayan.database:status() == 0 then
-		notifyerror( 'SQL Connection not open.' )
+		erayan.notifyerror( 'SQL Connection not open.' )
 		erayan.CheckStatus()		
 	end	
 	subQueryTextAdmin = erayan.queries['ins_select_user_id']:format(adminsteamid,erayan.config.server)
@@ -63,7 +63,7 @@ function erayan.doUpdateBan(t, steamid, adminsteamid)
 		--print('EraYaN: ',query:status(),erayan.database:status())
 		erayan.pmsg('Updating Ban',true)		
 	else
-		table.insert(erayan.database.pending, {queryText; queryObj=query})
+		table.insert(erayan.database.pending, {queryText; query})
 		erayan.CheckStatus()
 		erayan.pmsg('Update Ban Query Pending',true)
 	end
@@ -79,7 +79,7 @@ end
 
 function erayan.doUnBan(steamid)
 	if not erayan.database:status() == 0 then
-		notifyerror( 'SQL Connection not open.' )
+		erayan.notifyerror( 'SQL Connection not open.' )
 		erayan.CheckStatus()		
 	end	
 		--`ulibBanSteamID`='%s' AND `ulibBanServer`='%s'"
@@ -87,33 +87,32 @@ function erayan.doUnBan(steamid)
 		erayan.dmsg('Query',false,queryText)
 	local query = erayan.database:query(queryText)
 	if query and erayan.database:status() == 0 then
-		query.onFailure = erayan.updateBanOnFailure
-		query.onSuccess = erayan.updateBanOnSuccess		
+		query.onFailure = erayan.unBanOnFailure
+		query.onSuccess = erayan.unBanOnSuccess		
 		query:start()
 		--print('EraYaN: ',query:status(),erayan.database:status())
 		erayan.pmsg('Deleting Ban',true)		
 	else
-		table.insert(erayan.database.pending, {queryText; queryObj=query})
+		table.insert(erayan.database.pending, {queryText; query})
 		erayan.CheckStatus()
 		erayan.pmsg('Delete Ban Query Pending',true)
 	end
 end
 
-function erayan.addBanOnFailure( self, err )
+function erayan.unBanOnFailure( self, err )
 	erayan.notifyerror( 'SQL Ban Delete fail ', err )
 end
 
-function erayan.addBanOnSuccess( self )
+function erayan.unBanOnSuccess( self )
 	erayan.pmsg( 'Deleted Ban',true)
 end
 
-function erayan.doGetBans(ply)
+function erayan.doGetBans()
 	if not erayan.database:status() == 0 then
-		notifyerror( 'SQL Connection not open.' )
+		erayan.notifyerror( 'SQL Connection not open.' )
 		erayan.CheckStatus()		
-	end
-	if ply:IsBot() then return end
-	local queryText = erayan.queries['select_bans']:format(ply:SteamID(), erayan.config.server)
+	end	
+	local queryText = erayan.queries['select_bans']:format(erayan.config.server)
 	erayan.dmsg('Query',false,queryText)
 	local default_bans = ""
 	if file.Exists( "../cfg/banned_user.cfg" ) then
@@ -125,7 +124,7 @@ function erayan.doGetBans(ply)
 	--default_bans = ULib.makePatternSafe( default_bans )
 	default_bans = string.gsub( default_bans, "banid %d+ ", "" )
 	default_bans = string.Explode( "\n", default_bans:gsub( "\r", "" ) )
-	local ban_set = {}
+	--[[local ban_set = {}
 	for _, v in pairs( default_bans ) do
 		if v ~= "" then
 			ban_set[ v ] = true
@@ -133,17 +132,18 @@ function erayan.doGetBans(ply)
 				ULib.bans[ v ] = { unban = 0 }
 			end
 		end
-	end	
+	end	]]
 	local query = erayan.database:query(queryText)
 	if query and erayan.database:status() == 0 then
 		query.onFailure = erayan.getBansOnFailure
 		query.onSuccess = erayan.getBansOnSuccess
 		query.onData = erayan.getBansOnData
-		query.ban_set = ban_set
+		//query.ban_set = ban_set
 		query:start()
+		ULib.bans = {}
 		erayan.pmsg('Getting Bans',true)
 	else
-		table.insert(erayan.database.pending, {queryText; queryObj=query; onData=erayan.getBansOnData})
+		table.insert(erayan.database.pending, {queryText; onData=erayan.getBansOnData;})
 		erayan.CheckStatus()
 		erayan.pmsg('Get Bans Query Pending',true)
 	end
@@ -178,13 +178,12 @@ function erayan.getBansOnData(self, datarow)
 	if datarow['BanTime'] then
 		t.time = datarow['BanTime']
 	end
-	if datarow['ulibBanMinutes'] then
+	if datarow['ulibBanMinutes'] or datarow['ulibBanMinutes'] == 0 then
 		if datarow['ulibBanMinutes'] == 0 then
-			t.unban = nil
+			t.unban = 0
 		else
 			t.unban = datarow['BanTime']+datarow['ulibBanMinutes']*60
-		end
-		
+		end		
 	end
 	ULib.bans[ steamid ] = t
 	local time = (t.unban - os.time())/60
@@ -192,9 +191,10 @@ function erayan.getBansOnData(self, datarow)
 		game.ConsoleCommand( string.format( "banid %f %s\n", time, steamid) )	
 		erayan.dmsg(('Banned user %s for %i more minutes'):format(steamid, time),false)
 	elseif math.floor( datarow['ulibBanMinutes'] ) == 0 then -- We floor it because GM10 has floating point errors that might make it be 0.1e-20 or something dumb.
-		if not ban_set[ k ] then
-			ULib.bans[ k ] = nil
-		end			
+		--[[if not self.ban_set[ steamid ] then
+			ULib.bans[ steamid ] = nil
+		end	]]	
+		erayan.dmsg(('Banned user %s permanently'):format(steamid),false)
 	else
 		ULib.bans[ steamid ] = nil
 		erayan.dmsg(('Removed user ban for %s'):format(steamid),false)

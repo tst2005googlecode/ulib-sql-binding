@@ -4,7 +4,7 @@ end
 
 function erayan.doAddLogItem(str)
 	if not erayan.database:status() == 0 then
-		notifyerror( 'SQL Connection not open.' )
+		erayan.notifyerror( 'SQL Connection not open.' )
 		erayan.CheckStatus()		
 	end
 		local queryText = erayan.queries['insert_log']:format(os.date("%Y-%m-%d %X"),erayan.database:escape(str),erayan.config.server)
@@ -18,7 +18,7 @@ function erayan.doAddLogItem(str)
 		--print('EraYaN: ',query:status(),erayan.database:status())
 		erayan.pmsg('Adding Log Item',true)		
 	else
-		table.insert(erayan.database.pending, {queryText; queryObj=query})
+		table.insert(erayan.database.pending, {queryText; query})
 		erayan.CheckStatus()
 		erayan.pmsg('Add Log Query Pending',true)
 	end

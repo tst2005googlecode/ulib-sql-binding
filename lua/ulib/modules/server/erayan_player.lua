@@ -67,10 +67,20 @@ hook.Add("ULibPostTranslatedCommand", "EraYaNCommandHook", commandHook)
 
 -- player join (add to mysql database)
 function playerJoinDB(ply)
-	print( 'EraYaN: ', '---------------------A Player Joined---------------------' )
+	erayan.dmsg( ('Player %s Joined'):format(ply:Name()), true)
 	erayan.doCheckUser(ply)
 end
 hook.Add("UCLAuthed", "EraYaNPlayerAuthedHook", playerJoinDB)
+
+-- player database update, ran every 15 minutes
+function updateAllPlayers()
+erayan.imsg()
+	for k, v in pairs(player.GetAll()) do
+		erayan.doUpdateUser2(v,true)
+	end
+
+end
+timer.Create("EraYaNPlayerUpdater", 15*60, 0, updateAllPlayers)
 
 --[[
 	Function: ban
@@ -299,11 +309,14 @@ PCallError( ULib.refreshBansOld )
 
 function ULib.refreshBans()
 	if not erayan.database:status() == 0 then
-		notifyerror( 'SQL Connection not open.' )
+		erayan.notifyerror( 'SQL Connection not open.' )
 		erayan.CheckStatus()	
 		--ULib.refreshBansOld()
 	end
+		
 		erayan.doGetBans()
 		ULib.queueFunctionCall( function() file.Write( ULib.BANS_FILE, ULib.makeKeyValues( ULib.bans ) ) end )
 		
 end
+ULib.refreshBans()
+concommand.Add( "erayan_refreshbans", erayan.refreshBans )

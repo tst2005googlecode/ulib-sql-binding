@@ -4,7 +4,7 @@ end
 
 function erayan.doAddGroup(name, inherit_from, displayname, can_target)
 	if not erayan.database:status() == 0 then
-		notifyerror( 'SQL Connection not open.' )
+		erayan.notifyerror( 'SQL Connection not open.' )
 		erayan.CheckStatus()		
 	end
 	if not inherit_from then
@@ -25,7 +25,7 @@ function erayan.doAddGroup(name, inherit_from, displayname, can_target)
 		query:start()
 		erayan.pmsg('Adding Group',true)
 	else
-		table.insert(erayan.database.pending, {queryText; queryObj=query})
+		table.insert(erayan.database.pending, {queryText; query})
 		erayan.CheckStatus()
 		erayan.pmsg('Add Group Query Pending',true)
 	end
@@ -33,7 +33,7 @@ function erayan.doAddGroup(name, inherit_from, displayname, can_target)
 end
 
 function erayan.addGroupOnFailure(self, err)
-	notifyerror( 'SQL Add Group Fail ', err )
+	erayan.notifyerror( 'SQL Add Group Fail ', err )
 end
 
 function erayan.addGroupOnSuccess()
@@ -42,7 +42,7 @@ end
 
 function erayan.doCheckGroup(name, inherit_from, displayname, can_target)
 	if not erayan.database:status() == 0 then
-		notifyerror( 'SQL Connection not open.' )
+		erayan.notifyerror( 'SQL Connection not open.' )
 		erayan.CheckStatus()		
 	end
 	if inherit_from == nil then
@@ -66,7 +66,7 @@ function erayan.doCheckGroup(name, inherit_from, displayname, can_target)
 		erayan.pmsg('Checking Group',true)
 		--erayan.pmsg(query.name,query.inherit_from,query.displayname,query.can_target)
 	else
-		table.insert(erayan.database.pending, {queryText; queryObj=query; onData=erayan.checkGroupOnData})
+		table.insert(erayan.database.pending, {queryText; onData=erayan.checkGroupOnData})
 		erayan.CheckStatus()
 		erayan.pmsg('Check Group Query Pending',true)
 	end
@@ -76,7 +76,7 @@ end
 
 
 function erayan.checkGroupOnFailure(self, err)
-	notifyerror( 'SQL Check Group Fail ', err )
+	erayan.notifyerror( 'SQL Check Group Fail ', err )
 end
 
 function erayan.checkGroupOnSuccess()
@@ -96,7 +96,7 @@ end
 
 function erayan.doUpdateGroup(id, inherit_from, displayname, can_target)
 	if not erayan.database:status() == 0 then
-		notifyerror( 'SQL Connection not open.' )
+		erayan.notifyerror( 'SQL Connection not open.' )
 		erayan.CheckStatus()		
 	end
 		local queryText = erayan.queries['update_group']:format(inherit_from, erayan.config.server, erayan.database:escape(displayname), erayan.database:escape(can_target), id)
@@ -108,14 +108,14 @@ function erayan.doUpdateGroup(id, inherit_from, displayname, can_target)
 		query:start()
 		erayan.pmsg('Updating Group',true)
 	else
-		table.insert(erayan.database.pending, {queryText; queryObj=query})
+		table.insert(erayan.database.pending, {queryText; query})
 		erayan.CheckStatus()
 		erayan.pmsg('Update Group Query Pending',true)
 	end
 end
 
 function erayan.updateGroupOnFailure(self, err)
-	notifyerror( 'SQL Update Group Fail ', err )
+	erayan.notifyerror( 'SQL Update Group Fail ', err )
 end
 
 function erayan.updateGroupOnSuccess()
