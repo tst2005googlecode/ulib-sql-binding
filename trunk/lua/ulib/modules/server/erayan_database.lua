@@ -20,10 +20,11 @@ erayan.queries = {
 	-- Users (insert, select, update)
 	['insert_user'] = "INSERT INTO `ulibuser` "..
 	"(`ulibUserSteamID`, `ulibUserName`, `ulibUserGroupID`, `ulibUserLastVisited`, `ulibUserFirstVisited`, `ulibUserTimesVisited`, `ulibUserLastUsedIP`, `ulibUserFirstUsedIP`, `ulibUserServer`)"..
-	" VALUES ('%s', '%s', 0, NOW(), NOW(), 1, '%s', '%s', '%s');";
+	" VALUES ('%s', '%s', %s, NOW(), NOW(), 1, '%s', '%s', '%s');";
 	['select_user'] = "SELECT *, COUNT(*) AS Hits FROM `ulibuser` WHERE ulibUserSteamID = '%s' AND `ulibUserServer` = '%s' LIMIT 1;";
-	['update_user'] = "UPDATE `ulibuser` SET `ulibUserName`='%s', `ulibUserLastVisited`=NOW(), `ulibUserTimesVisited`=`ulibUserTimesVisited`+1, `ulibUserLastUsedIP`='%s' WHERE `ulibUserID`=%i;";
-	['update_user_2'] = "UPDATE `ulibuser` SET `ulibUserName`='%s', `ulibUserLastVisited`=NOW(), `ulibUserFrags`=`ulibUserFrags`+%i,`ulibUserDeaths`=`ulibUserDeaths`+%i, `ulibUserTimePlayed`=%i WHERE `ulibUserSteamID`='%s' AND `ulibUserServer`='%s';";
+	['update_user'] = "UPDATE `ulibuser` SET `ulibUserName`='%s', `ulibUserLastVisited`=NOW(), `ulibUserGroupID`=%s, `ulibUserTimesVisited`=`ulibUserTimesVisited`+%i, `ulibUserLastUsedIP`='%s' WHERE `ulibUserID`=%i;";
+	['update_user_2'] = "UPDATE `ulibuser` SET `ulibUserName`='%s', `ulibUserLastVisited`=NOW(), `ulibUserFrags`=`ulibUserFrags`+%i,`ulibUserDeaths`=`ulibUserDeaths`+%i, `ulibUserTimePlayed`= CASE WHEN (%i-90)>`ulibUserTimePlayed`+%i THEN %i ELSE `ulibUserTimePlayed`+%i END, `ulibUserLastUsedIP`='%s' WHERE `ulibUserSteamID`='%s' AND `ulibUserServer`='%s';";
+	['update_user_2_nf'] = "UPDATE `ulibuser` SET `ulibUserName`='%s', `ulibUserLastVisited`=NOW(), `ulibUserTimePlayed`= CASE WHEN (%i-90)>`ulibUserTimePlayed`+%i THEN %i ELSE `ulibUserTimePlayed` END WHERE `ulibUserSteamID`='%s' AND `ulibUserServer`='%s';";
 	-- Insertables Queries
 	['ins_select_group_id'] = "(SELECT `ulibGroupID` FROM `ulibgroup` WHERE `ulibGroupName` = '%s' AND `ulibGroupServer` = '%s')";
 	['ins_select_user_id'] = "(SELECT `ulibUserID` FROM `ulibuser` WHERE `ulibUserSteamID` = '%s' AND `ulibUserServer` = '%s')";
@@ -51,13 +52,14 @@ erayan.queries = {
 	"LEFT OUTER JOIN `dehaantj_ulib_ulx`.`ulibuser` AS users ON users.`ulibUserID`=bans.`ulibBanUserID`"..
 	"LEFT OUTER JOIN `dehaantj_ulib_ulx`.`ulibuser` AS admins ON admins.`ulibUserID`=bans.`ulibBanAdminID`"..
 	"LEFT OUTER JOIN `dehaantj_ulib_ulx`.`ulibuser` AS modadmins ON modadmins.`ulibUserID`=bans.`ulibBanModifiedAdminID`";]]
-	['select_bans'] = "SELECT users.`ulibUserName` as UserName, admins.`ulibUserName` as AdminName, admins.`ulibUserSteamID` as AdminSteamID,"..
-	"modadmins.`ulibUserName` as ModifiedAdminName, modadmins.`ulibUserSteamID` as ModifiedAdminSteamID,"..
-	"UNIX_TIMESTAMP(bans.`ulibBanTime`) as BanTime,  UNIX_TIMESTAMP(bans.`ulibBanModifiedTime`) as ModBanTime, bans.*"..
-	"FROM `dehaantj_ulib_ulx`.`ulibban` AS bans"..
-	"LEFT OUTER JOIN `dehaantj_ulib_ulx`.`ulibuser` AS users ON users.`ulibUserID`=bans.`ulibBanUserID`"..
-	"LEFT OUTER JOIN `dehaantj_ulib_ulx`.`ulibuser` AS admins ON admins.`ulibUserID`=bans.`ulibBanAdminID`"..
-	"LEFT OUTER JOIN `dehaantj_ulib_ulx`.`ulibuser` AS modadmins ON modadmins.`ulibUserID`=bans.`ulibBanModifiedAdminID`";
+	['select_bans'] = "SELECT users.`ulibUserName` as UserName, admins.`ulibUserName` as AdminName, admins.`ulibUserSteamID` as AdminSteamID, "..
+	"modadmins.`ulibUserName` as ModifiedAdminName, modadmins.`ulibUserSteamID` as ModifiedAdminSteamID, "..
+	"UNIX_TIMESTAMP(bans.`ulibBanTime`) as BanTime,  UNIX_TIMESTAMP(bans.`ulibBanModifiedTime`) as ModBanTime, bans.* "..
+	"FROM `dehaantj_ulib_ulx`.`ulibban` AS bans "..
+	"LEFT OUTER JOIN `dehaantj_ulib_ulx`.`ulibuser` AS users ON users.`ulibUserID`=bans.`ulibBanUserID` "..
+	"LEFT OUTER JOIN `dehaantj_ulib_ulx`.`ulibuser` AS admins ON admins.`ulibUserID`=bans.`ulibBanAdminID` "..
+	"LEFT OUTER JOIN `dehaantj_ulib_ulx`.`ulibuser` AS modadmins ON modadmins.`ulibUserID`=bans.`ulibBanModifiedAdminID` "..
+	"WHERE bans.`ulibBanServer`='%s'";
 }
 
 local function blankCallback() end
@@ -97,7 +99,7 @@ function erayan.doConnect()
 	erayan.database = mysqloo.connect(erayan.config.hostname, erayan.config.username, erayan.config.password, erayan.config.database, erayan.config.portnumb)
 	erayan.database.onConnectionFailed = erayan.databaseOnFailure
 	erayan.database.onConnected = erayan.databaseOnConnected
-	erayan.database.pending = {}
+	erayan.database.pending = {}	
 	erayan.database:connect()
 end
 
@@ -112,7 +114,7 @@ include('./erayan/erayan_permissions.lua');
 include('./erayan/erayan_bans.lua');
 
 function erayan.pendingOnFailure(self, err)
-	notifyerror( 'Pending SQL could\'t execute',err )
+	erayan.notifyerror( 'Pending SQL could\'t execute',err )
 end
 
 function erayan.pendingOnSuccess()
@@ -120,32 +122,28 @@ function erayan.pendingOnSuccess()
 end
 
 function erayan.databaseOnFailure(self, err)
-	notifyerror( 'SQL Connect fail ',err  )
+	erayan.notifyerror( 'SQL Connect fail ',err  )
 end
 function erayan.databaseOnConnected(self)
-	erayan.pmsg('Connected to DB',true)
-	if (#self.pending == 0) then return; end
-	
+	erayan.pmsg('Connected to DB',true)	
+	if (#self.pending == 0) then return; end	
 	erayan.pmsg( #self.pending, false,'pending queries to do.')
 	local query;
 	for _, info in pairs(self.pending) do
-		
-		if info['queryObj'] != nil then
-			query = info['queryObj']
-		else
-			query 			= self:query(info[1]);
-			query.onFailure	= erayan.pendingOnFailure;
-			query.onSuccess	= erayan.pendingOnSuccess;			
-		end
-		query:start();
 		local extra = ''
+		query 			= self:query(info[1]);
+		query.onFailure	= erayan.pendingOnFailure;
+		query.onSuccess	= erayan.pendingOnSuccess;			
 		if type(info['onData']) == 'function' then
-			extra = ': with callback'
-		end
+			extra = ': with callback'			
+			query.OnData = info['onData']
+		end	
+		query:start();
+		
 		print('EraYaN: ','Pending query executing'..extra..'')
 	end
 	self.pending = {};
-
+	
 end
 
 -- Console Commands
@@ -209,7 +207,12 @@ function erayan.CheckStatus()
 		erayan.database:connect()
 	end
 end
-timer.Create("EraYaN-Status-Checker", 300, 0, erayan.CheckStatus)
+timer.Create("EraYaNStatusChecker", 300, 0, erayan.CheckStatus)
 
 erayan.doConnect()
 
+function wakeUpWithBot()
+game.ConsoleCommand( "bot\n" ) -- Execute after done loading bans
+timer.Create("EraYaNRemoveBot", 10, 1, function() for k, v in pairs(player.GetBots()) do  Msg( ULib.queueFunctionCall( game.ConsoleCommand, ("kickid %i\n"):format(v:UserID()) ) ) end end)
+end
+hook.Add("InitPostEntity", "EraYaNWakeUpWithBot", wakeUpWithBot)

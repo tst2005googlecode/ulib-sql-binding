@@ -2,14 +2,21 @@ if not erayan then
 	include('./erayan/erayan_init.lua');
 end
 
-function erayan.doAddUser(ply)
+function erayan.doAddUser(ply, name, group)
 	if not erayan.database:status() == 0 then
-		notifyerror( 'SQL Connection not open.' )
+		erayan.notifyerror( 'SQL Connection not open.' )
 		erayan.CheckStatus()		
-	end
-	if ply:IsBot() then return end
-		local queryText = erayan.queries['insert_user']:format(ply:SteamID(),erayan.database:escape(ply:GetName()),erayan.getIP(ply),erayan.getIP(ply),erayan.config.server)
-		erayan.dmsg('Query',false,queryText)
+	end	
+	local queryText = ''
+	if ply:IsValid() then
+		
+		if ply:IsBot() then return end
+		queryText = erayan.queries['insert_user']:format(ply:SteamID(),erayan.database:escape(ply:GetName()),'0',erayan.getIP(ply),erayan.getIP(ply),erayan.config.server)
+	else
+		subQueryText = erayan.queries['ins_select_group_id']:format(group,erayan.config.server)
+		queryText = erayan.queries['insert_user']:format(ply,erayan.database:escape(name),subQueryText,'(unknown)','(unknown)',erayan.config.server)
+	end	
+	erayan.dmsg('Query',false,queryText)
 	local query = erayan.database:query(queryText)
 	if query and erayan.database:status() == 0 then
 		query.onFailure = erayan.addUserOnFailure
@@ -17,7 +24,7 @@ function erayan.doAddUser(ply)
 		query:start()
 		erayan.pmsg('Adding User',true)
 	else
-		table.insert(erayan.database.pending, {queryText; queryObj=query})
+		table.insert(erayan.database.pending, {queryText; query})
 		erayan.CheckStatus()
 		erayan.pmsg('Add User Query Pending',true)
 	end
@@ -32,24 +39,33 @@ function erayan.addUserOnSuccess(query)
 	erayan.pmsg('Added User',true)
 end
 
-function erayan.doCheckUser(ply)
+function erayan.doCheckUser(ply, name, group)
 	if not erayan.database:status() == 0 then
-		notifyerror( 'SQL Connection not open.' )
+		erayan.notifyerror( 'SQL Connection not open.' )
 		erayan.CheckStatus()		
-	end
-	if ply:IsBot() then return end
-		local queryText = erayan.queries['select_user']:format(ply:SteamID(), erayan.config.server)
-		erayan.dmsg('Query',false,queryText)
+	end	
+	local SteamID = '';	
+	if ply:IsValid() then
+		SteamID = ply:SteamID()
+		if ply:IsBot() then return end
+	else
+		SteamID = ply
+	end	
+	local queryText = erayan.queries['select_user']:format(SteamID, erayan.config.server)	
+	erayan.dmsg('Query',false,queryText)
 	local query = erayan.database:query(queryText)
 	if query and erayan.database:status() == 0 then
 		query.onFailure = erayan.checkUserOnFailure
 		query.onSuccess = erayan.checkUserOnSuccess
 		query.onData = erayan.checkUserOnData
 		query.ply = ply
+		query.SteamID = SteamID	
+		query.name = name
+		query.group = group
 		query:start()
 		erayan.pmsg('Checking User',true)
 	else
-		table.insert(erayan.database.pending, {queryText; queryObj=query; onData=erayan.checkGroupOnData})
+		table.insert(erayan.database.pending, {queryText; onData=erayan.checkGroupOnData})
 		erayan.CheckStatus()
 		erayan.pmsg('Check User Query Pending',true)
 	end
@@ -67,27 +83,49 @@ end
 
 function erayan.checkUserOnData(self, datarow)
 	erayan.pmsg('Recieved User Data',true)
-	if self.ply:IsBot() then 
+	if ply:IsValid() then
+		SteamID = ply:SteamID()
+		if self.ply:IsBot() then 
 		erayan.pmsg('We dont want bots in our DB',true)
+		if datarow['Hits']  == "0" then
+			erayan.pmsg('Adding user...',true)
+			erayan.doAddUser(self.ply)
+			else
+			erayan.pmsg('Updating user...',true)
+			erayan.doUpdateUser(self.ply,  datarow['ulibUserID'])
+		end
 		return 0
 	end
-	--erayan.pmsg(type(datarow['Hits']),datarow['Hits'])
-	if datarow['Hits']  == "0" then
-		erayan.pmsg('Adding user...',true)
-		erayan.doAddUser(self.ply)
+	else		
+		if datarow['Hits']  == "0" then
+			erayan.pmsg('Adding user...',true)
+			erayan.doAddUser(self.SteamID, self.name, self.group)	
 		else
-		erayan.pmsg('Updating user...',true)
-		erayan.doUpdateUser(self.ply,  datarow['ulibUserID'])
-	end
+			erayan.pmsg('Updating user...',true)
+			erayan.doUpdateUser(nil,datarow['ulibUserID'], self.name, self.group)			
+		end
+	end	
+	
+	--erayan.pmsg(type(datarow['Hits']),datarow['Hits'])
+	
 end
 
-function erayan.doUpdateUser(ply, id)
+
+function erayan.doUpdateUser(ply, id, name, group)
 	if not erayan.database:status() == 0 then
-		notifyerror( 'SQL Connection not open.' )
+		erayan.notifyerror( 'SQL Connection not open.' )
 		erayan.CheckStatus()		
 	end
 	if ply:IsBot() then return end
-		local queryText = erayan.queries['update_user']:format(erayan.database:escape(ply:GetName()), erayan.getIP(ply), id)
+	local queryText = ''
+	if ply:IsValid() then		
+		if ply:IsBot() then return end
+		subQueryText = erayan.queries['ins_select_group_id']:format(ply:GetUserGroup(),erayan.config.server)
+		queryText = erayan.queries['update_user']:format(erayan.database:escape(ply:GetName()),subQueryText, 1, id)
+	else
+		subQueryText = erayan.queries['ins_select_group_id']:format(group,erayan.config.server)
+		queryText = erayan.queries['update_user']:format(erayan.database:escape(name),subQueryText, 0, id)
+	end	
 		erayan.dmsg('Query',false,queryText)
 	local query = erayan.database:query(queryText)
 	if query and erayan.database:status() == 0 then
@@ -96,7 +134,7 @@ function erayan.doUpdateUser(ply, id)
 		query:start()
 		erayan.pmsg('Updating User',true)
 	else
-		table.insert(erayan.database.pending, {queryText; queryObj=query})
+		table.insert(erayan.database.pending, {queryText;})
 		erayan.CheckStatus()
 		erayan.pmsg('Update User Query Pending',true)
 	end
@@ -111,13 +149,22 @@ function erayan.updateUserOnSuccess()
 	erayan.pmsg('Updated User',true)
 end
 
-function erayan.doUpdateUser2(ply)
+function erayan.doUpdateUser2(ply, notfinal)
 	if not erayan.database:status() == 0 then
-		notifyerror( 'SQL Connection not open.' )
+		erayan.notifyerror( 'SQL Connection not open.' )
 		erayan.CheckStatus()		
 	end
 	if ply:IsBot() then return end
-		local queryText = erayan.queries['update_user_2']:format(erayan.database:escape(ply:GetName()), ply:Frags(), ply:Deaths(), math.floor((ply:GetUTime() + CurTime() - ply:GetUTimeStart()), ply:SteamID(), erayan.config.server))
+	local frags = 0
+	local deaths = 0
+	local queryText = ''
+	if notfinal then
+		queryText = erayan.queries['update_user_2_nf']:format(erayan.database:escape(ply:GetName()), math.floor(ply:GetUTimeTotalTime()), math.floor(ply:GetUTimeSessionTime()), math.floor(ply:GetUTimeTotalTime()), ply:SteamID(), erayan.config.server)
+	else		
+		frags = ply:Frags()
+		deaths = ply:Deaths()
+		queryText = erayan.queries['update_user_2']:format(erayan.database:escape(ply:GetName()), frags, deaths, math.floor(ply:GetUTimeTotalTime()), math.floor(ply:GetUTimeSessionTime()), math.floor(ply:GetUTimeTotalTime()),math.floor(ply:GetUTimeSessionTime()), erayan.getIP(ply), ply:SteamID(), erayan.config.server)
+	end
 		erayan.dmsg('Query',false,queryText)
 	local query = erayan.database:query(queryText)
 	if query and erayan.database:status() == 0 then
@@ -126,7 +173,7 @@ function erayan.doUpdateUser2(ply)
 		query:start()
 		erayan.pmsg('Updating User (2)',true)
 	else
-		table.insert(erayan.database.pending, {queryText; queryObj=query})
+		table.insert(erayan.database.pending, {queryText;})
 		erayan.CheckStatus()
 		erayan.pmsg('Update User (2) Query Pending',true)
 	end
