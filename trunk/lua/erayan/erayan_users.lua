@@ -116,8 +116,7 @@ function erayan.doUpdateUser(ply, id, name, group)
 	if not erayan.database:status() == 0 then
 		erayan.notifyerror( 'SQL Connection not open.' )
 		erayan.CheckStatus()		
-	end
-	if ply:IsBot() then return end
+	end	
 	local queryText = ''
 	if type(ply) == 'Player' then		
 		if ply:IsBot() then return end
